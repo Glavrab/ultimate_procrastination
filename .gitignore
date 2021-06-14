@@ -1,0 +1,8 @@
+# Project's configs
+config.json
+
+# IDE files
+.idea/
+
+# Virtual enviroment
+venv/
