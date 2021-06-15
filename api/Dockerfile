@@ -6,7 +6,7 @@ WORKDIR /ultimate_procrastination
 
 COPY api /ultimate_procrastionation/api
 COPY database /ultimate_procrastionation/database
-
+COPY shared /ultimate_procrastination/shared
 COPY wiki_searcher /ultimate_procrastination/wiki_seacher
 
 COPY wait-for-port-availability.sh /ultimate_procrastionation/

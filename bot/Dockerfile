@@ -4,6 +4,7 @@ ENV PYTHONPATH /ultimate_procrastination
 
 WORKDIR /ultimate_procrastination
 
+COPY shared /ultimate_procrastination/shared
 COPY bot /ultimate_procrastionation/bot
 COPY requirements.txt /ultimate_procrastionation/
 
