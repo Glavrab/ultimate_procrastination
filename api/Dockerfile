@@ -9,7 +9,7 @@ COPY database /ultimate_procrastionation/database
 
 COPY wiki_searcher /ultimate_procrastination/wiki_seacher
 
-COPY wait-for-it.sh /ultimate_procrastionation/
+COPY wait-for-port-availability.sh /ultimate_procrastionation/
 COPY requirements.txt /ultimate_procrastionation/
 
 

@@ -47,7 +47,7 @@ services:
       - "8000:8000"
     volumes:
        - ./config.json:/ultimate_procrastination/config.json
-    entrypoint: ./wait-for-it.sh -h db -p 5432 -t 0 --
+    entrypoint: ./wait-for-port-availability.sh -h db -p 5432 -t 0 --
     command:
       - "uvicorn"
       - "/api:/api/main"
