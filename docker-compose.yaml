@@ -43,6 +43,8 @@ services:
       - procrastination_network
     depends_on:
       - "db"
+    environment:
+      - PYTHONUNBUFFERED=1
     ports:
       - "8000:8000"
     volumes:
