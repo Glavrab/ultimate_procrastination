@@ -71,13 +71,13 @@ class WikiSearcher:
             search_settings,
             SearchedObjectTypes.CATEGORY_MEMBERS.value
         )
-        for title in titles:  # await title_db_model.create(title_name=title)
+        for title in titles:
+            # await title_db_model.create(title_name=title)
             pass             # TODO: write down founded titles into db
-
+        print(titles, categories)
         return categories
 
 
 if __name__ == '__main__':
     search = WikiSearcher(action='query', format='json')
-   # await search.get_subcategories_titles(SearchedObjectCategories.IT.value, 3, PhysicsTitle, 100)
-    asyncio.run(search.get_random_wiki_title())
+    asyncio.run(search.get_subcategories_titles(SearchedObjectCategories.IT.value, PhysicsTitle, 100))
