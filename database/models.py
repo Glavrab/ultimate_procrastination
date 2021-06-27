@@ -3,7 +3,7 @@ from gino import Gino
 import sqlalchemy as sa
 
 
-db = Gino()  # DB initiation
+db = Gino()  # DB initialization
 
 
 async def connect_to_db(uri: str):
@@ -19,8 +19,8 @@ class User(db.Model):
     telegram_id = sa.Column(sa.Integer(), nullable=True, unique=True)
 
 
-class RatingType(db.Model):
-    __tablename__ = 'rating_types'
+class Rating(db.Model):
+    __tablename__ = 'ratings'
 
     PHYSICS = 0
     CHEMISTRY = 1
