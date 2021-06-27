@@ -28,13 +28,13 @@ def get_object_info_for_one_page(data: dict[str]) -> str:
 
 
 def get_titles_and_categories(data: dict[str]) -> tuple[list[str], list[str]]:
-    """Parse json file for titles to insert into db or categories"""
+    """Parse json file for categories or pages titles to insert into db """
     titles = []
     categories = []
     search_results = data['query']['categorymembers']
     for result in search_results:
         if result['ns'] == 0:  # Means that result is page other is category
-            titles.append(result)
-        categories.append(result)
+            titles.append(result['title'])
+        categories.append(result['title'])
     parsed_data = (titles, categories)
     return parsed_data
