@@ -53,13 +53,13 @@ services:
        - ./config.json:/ultimate_procrastination/config.json
     entrypoint: ./wait-for-port-availability.sh -h db -p 5432 -t 0 --
     command:
-      - "uvicorn"
-      - "api.main:start_app"
-      - "--host"
-      - "0.0.0.0"
-      - "--port"
-      - "8000"
-
+      - "gunicorn"
+      - "api.main:web_app"
+      - "--bind"
+      - "0.0.0.0:8000"
+      - "--worker-class"
+      - "aiohttp.GunicornWebWorker"
+      - "--workers=1"
 networks:
   procrastination_network:
     name: procrastination_network
