@@ -5,15 +5,13 @@ services:
     image: postgres:13
     restart: always
     container_name: procrastination_db
-    volumes:
-      - ./database/alembic_init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - procrastination_network
     ports:
       - "5432:5432"
     environment:
       POSTGRES_USER: procrastination_admin
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: 278HaeD7gF
       POSTGRES_DB: ultimate_procrastination
     command: ["postgres", "-c", "log_statement=all"]
 
@@ -22,7 +20,7 @@ services:
       context: .
       dockerfile: bot/Dockerfile
     container_name: procrastination_bot
-    restart: "no"
+    restart: always
     networks:
       - procrastination_network
     volumes:
@@ -40,26 +38,24 @@ services:
       context: .
       dockerfile: api/Dockerfile
     container_name: procrastination_web
-    restart: "no"
+    restart: always
     networks:
       - procrastination_network
     depends_on:
       - "db"
-    environment:
-      - PYTHONUNBUFFERED=1
     ports:
       - "8000:8000"
     volumes:
        - ./config.json:/ultimate_procrastination/config.json
-    entrypoint: ./wait-for-port-availability.sh -h db -p 5432 -t 0 --
+    entrypoint: ./wait-for-it.sh -h db -p 5432 -t 0 --
     command:
-      - "gunicorn"
-      - "api.main:web_app"
-      - "--bind"
-      - "0.0.0.0:8000"
-      - "--worker-class"
-      - "aiohttp.GunicornWebWorker"
-      - "--workers=1"
+      - "uvicorn"
+      - "/api:/api/main"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "8000"
+
 networks:
   procrastination_network:
     name: procrastination_network

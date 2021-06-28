@@ -6,8 +6,3 @@ config.json
 
 # Virtual enviroment
 venv/
-
-__pycache__/
-
-# Database settings
-.env
