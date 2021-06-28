@@ -22,8 +22,8 @@ class ProjectSettings(BaseModel):
         config = ujson.load(config_path.open('r'))
         return cls(
             telegram_token=config.get('telegram_token'),
-            apply_migration=config.get('apply_migration'),
-            pg_host=config.get('pg_host'),
+            apply_migration=config.get('apply_migrations'),
+            pg_host=config.get('pg_host', 'db'),
             pg_username=config.get('pg_username'),
             pg_password=config.get('pg_password'),
             pg_port=config.get('pg_port'),
