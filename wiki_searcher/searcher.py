@@ -1,4 +1,3 @@
-import asyncio
 import typing
 from database.models import (
     PhysicsTitle,
@@ -8,7 +7,7 @@ from database.models import (
     ItTitle,
 )
 from wiki_searcher.utilities import process_searching
-from shared.constants import SearchedObjectCategories, SearchedObjectTypes
+from shared.constants import SearchedObjectTypes
 
 
 class WikiSearcher:
@@ -74,10 +73,4 @@ class WikiSearcher:
         for title in titles:
             # await title_db_model.create(title_name=title)
             pass             # TODO: write down founded titles into db
-        print(titles, categories)
         return categories
-
-
-if __name__ == '__main__':
-    search = WikiSearcher(action='query', format='json')
-    asyncio.run(search.get_subcategories_titles(SearchedObjectCategories.IT.value, PhysicsTitle, 100))
