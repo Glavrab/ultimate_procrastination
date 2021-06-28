@@ -1,0 +1,1 @@
+GRANT ALL PRIVILEGES ON DATABASE ultimate_procrastination to procrastination_admin;

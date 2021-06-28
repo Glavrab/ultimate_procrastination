@@ -1,57 +1,76 @@
-import aiohttp
-import asyncio
-import ujson
 import typing
-from wiki_searcher.utilities import get_object_info
-from shared.constants import Wiki
+from database.models import (
+    PhysicsTitle,
+    BiologyTitle,
+    HistoryTitle,
+    ChemistryTitle,
+    ItTitle,
+)
+from wiki_searcher.utilities import process_searching
+from shared.constants import SearchedObjectTypes
 
 
 class WikiSearcher:
     """Class for processing searching actions on wikipedia"""
 
-    def __init__(self, action: str, format: str, prop: str, title: typing.Optional[str]):
-        if title:
-            self.title = title
-        self.action = action
-        self.format = format
-        self.prop = prop
+    def __init__(self, action: str, format: str, **kwargs: dict[str]):
+        self.main_search_settings = {
+            'action': action,
+            'format': format,
+        }
+        if kwargs:
+            try:
+                self.main_search_settings.update(
+                    prop=kwargs['prop'],
+                    title=kwargs['title'],
+                )
+            except KeyError:
+                print('Wrong arguments, requires keys: prop, title')
 
     async def get_object_wiki_info(self) -> str:
         """Get info about specific object"""
-        search_settings = {
-            'action': self.action,
-            'format': self.format,
-            'prop': self.prop,
-            'titles': self.title,
-            'exlimit': 1,
-            'exintro': 1,   # Search options for correct text representation only of main description
-            'explaintext': 1,   # Additional info https://www.mediawiki.org/wiki/Extension:TextExtracts#API
-            'exsectionformat': 'wiki',
-        }
-        object_description = await WikiSearcher.process_searching(search_settings)
+        search_settings = self.main_search_settings
+        search_settings.update(
+            prop='extracts',
+            exlimit=1,
+            exintro=1,  # Search options for correct text representation only of main description
+            explaintext=1,  # Additional info https://www.mediawiki.org/wiki/Extension:TextExtracts#API
+            exectionformat='wiki',
+        )
+
+        object_description = await process_searching(search_settings, SearchedObjectTypes.PAGE.value)
         return object_description
 
     async def get_random_wiki_title(self) -> str:
         """Get random wikipedia title"""
-        search_settings = {
-            'action': self.action,
-            'format': self.format,
-            'list': 'random',
-            'rnnamespace': 0,  # Searching only for pages
-            'rnlimit': 1,
-        }
-        title = await WikiSearcher.process_searching(search_settings)
+        search_settings = self.main_search_settings
+        search_settings.update(
+            list='random',
+            rnnamespace=0,  # Searching only for pages
+            rnlimit=1,
+        )
+        title = await process_searching(search_settings, SearchedObjectTypes.TITLE.value)
         return title
 
-    @classmethod
-    async def process_searching(cls, search_settings: dict[str, int]) -> str:
-        """Get object info from required page"""
-        async with aiohttp.ClientSession(json_serialize=ujson.dumps) as session:
-            response = await session.get(Wiki.API_URL.value, params=search_settings)
-            await session.close()
-            return get_object_info(await response.json())
-
-
-if __name__ == '__main__':
-    search = WikiSearcher('query', 'json', 'extracts', 'Pet_door')
-    asyncio.run(search.get_random_wiki_title())
+    async def get_subcategories_titles(
+            self,
+            searched_object: str,
+            title_db_model: typing.Union['PhysicsTitle', 'ChemistryTitle', 'ItTitle', 'BiologyTitle', 'HistoryTitle'],
+            max_amount_of_objects_for_level: int,
+    ) -> list[str]:
+        """Get subcategories titles for required object and write them into db"""
+        search_settings = self.main_search_settings
+        search_settings.update(
+            list=SearchedObjectTypes.CATEGORY_MEMBERS.value,
+            cmtitle=searched_object,
+            cmtype=SearchedObjectTypes.PAGE.value + '|' + SearchedObjectTypes.SUBCATEGORY.value,
+            cmlimit=max_amount_of_objects_for_level,
+        )
+        titles, categories = await process_searching(
+            search_settings,
+            SearchedObjectTypes.CATEGORY_MEMBERS.value
+        )
+        for title in titles:
+            # await title_db_model.create(title_name=title)
+            pass             # TODO: write down founded titles into db
+        return categories
