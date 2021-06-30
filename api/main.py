@@ -1,5 +1,8 @@
 from aiohttp import web
 from loguru import logger
+from api.utilities import register_user
+import ujson
+from shared.exceptions import PasswordError, LoginError
 from shared.project_settings import settings
 from database.utilities import apply_migrations
 from database.models import connect_to_db, db
@@ -8,9 +11,16 @@ from database.models import connect_to_db, db
 app_route = web.RouteTableDef()
 
 
-@app_route.get('/')
-async def index(request: web.Request):
-    return web.Response(text='test')
+@app_route.post('/registration')
+async def register(request: web.Request):
+    data = await request.json(loads=ujson.loads)
+    try:
+        response = await register_user(data)
+        return web.json_response(response, dumps=ujson.dumps)
+    except (LoginError, PasswordError) as error:
+        response = {'error': error}
+        return web.json_response(response, dumps=ujson.dumps)
+
 
 
 async def web_app() -> 'web.Application':
