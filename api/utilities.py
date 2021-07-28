@@ -75,7 +75,65 @@ async def get_random_fact() -> str:
     object_description = await searcher.get_object_wiki_info(random_title)
     return object_description
 
-def check_if_data_correct(data: dict[str]) -> typing.Union[bool, str]:
+
+async def get_random_rated_fact_info(session: 'Session') -> tuple[str, str]:
+    """Get random rated fact"""
+    # TODO: get fact according to users preferences
+    topic_type_number = random.randint(0, 4)
+    rated_title = await Title.get_random_title_by_category(topic_type_number)
+    session['last_rated_topic_id'] = rated_title.id
+    searcher = WikiSearcher(action='query', format='json')
+    object_description = await searcher.get_object_wiki_info(rated_title.title_name)
+    return object_description, rated_title.title_name
+
+
+async def check_if_user_logged_in(request: web.Request) -> bool:
+    """Check if user has logged in"""
+    session = await get_session(request)
+    if session.new:
+        session.invalidate()
+        return False
+    return True
+
+
+async def process_rating(data: dict, session: 'Session') -> tuple[str, str, dict[str]]:
+    """Process rating command"""
+    command = data['command']
+    title_id = session['last_rated_topic_id']
+    rated_title = await Title.get(title_id)
+    amount_of_likes, amount_of_views, title_type = rated_title.amount_of_likes, \
+                                                   rated_title.amount_of_views, \
+                                                   rated_title.title_type_id,
+    total_amount_of_views = amount_of_views + 1
+    theme_rating = await Rating.get_user_theme_rating(title_type, session['username'])
+    if not theme_rating:
+        theme_rating = await Rating.create(category_type_id=title_type, user_id=session['user_id'])
+    theme_rating_number = theme_rating.rating_number
+
+    if command == RateCommand.LIKE.value:
+        title_rating = (amount_of_likes + 1) / total_amount_of_views
+        await theme_rating.update(rating_number=theme_rating_number + 1).apply()
+        await rated_title.update(
+            amount_of_likes=amount_of_likes + 1,
+            amount_of_views=total_amount_of_views,
+            title_rating=title_rating,
+        ).apply()
+
+    elif command == RateCommand.DISLIKE.value:
+        total_amount_of_likes = amount_of_likes - 1
+        title_rating = total_amount_of_likes / total_amount_of_views
+        await theme_rating.update(rating_number=theme_rating_number - 1).apply()
+        await rated_title.update(
+            amount_of_likes=amount_of_likes - 1,
+            amount_of_views=total_amount_of_views,
+            title_rating=title_rating
+        ).apply()
+
+    result = {"result": Codes.SUCCESS.value}
+    return session['username'], command, result
+
+
+async def _check_if_data_correct(data: dict[str]):
     """Check if data is ok with the requirements"""
     password = data['passwords']['password']
     if password != data['passwords']['repeated_password']:
