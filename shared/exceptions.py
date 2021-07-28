@@ -1,5 +1,4 @@
 class Error(Exception):
-    """Password validation errors"""
 
     def __init__(self, error_message: str):
         self.error_message = error_message
@@ -13,4 +12,8 @@ class PasswordError(Error):
 
 
 class LoginError(Error):
+    pass
+
+
+class AuthorizationError(Error):
     pass
