@@ -98,16 +98,12 @@ def create_inline_keyboard(buttons: list[str],
                            callback_queries: Optional[tuple] = None,
                            ) -> types.InlineKeyboardMarkup:
     """Create an inline keyboard to communicate with bot."""
-    if repeat:
-        queries = (queries[0] for _ in range(len(buttons)))
-    if queries is None:
-        queries = buttons.copy()
+    if callback_queries is None:
+        callback_queries = buttons.copy()
 
-    assert len(queries) <= len(buttons), 'Queries should be less or equal to buttons size'
-
-    keyboard = InlineKeyboardMarkup()
-    for button, query in itertools.zip_longest(buttons, queries):
-        button_to_add = InlineKeyboardButton(button, callback_data=_callback_data_normalize(query))
+    keyboard = types.InlineKeyboardMarkup()
+    for button, query in itertools.zip_longest(buttons, callback_queries):
+        button_to_add = types.InlineKeyboardButton(button, callback_data=_callback_data_normalize(query))
         keyboard.add(button_to_add)
     return keyboard
 
