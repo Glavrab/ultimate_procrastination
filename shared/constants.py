@@ -76,33 +76,3 @@ class SearchedObjectTypes(enum.Enum):
     SUBCATEGORY = 'subcat'
     FILE = 'file'
     CATEGORY_MEMBERS = 'categorymembers'
-
-
-ALPHABET = {
-    'A',
-    'B',
-    'C',
-    'D',
-    'E',
-    'F',
-    'G',
-    'H',
-    'I',
-    'J',
-    'K',
-    'L',
-    'M',
-    'N',
-    'O',
-    'P',
-    'Q',
-    'R',
-    'S',
-    'T',
-    'U',
-    'V',
-    'W',
-    'X',
-    'Y',
-    'Z'
-}
