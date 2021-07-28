@@ -68,6 +68,12 @@ async def login_user(data: dict[str], request: web.Request) -> typing.Optional[d
     raise LoginError(LoginErrorMessage.INCORRECT_DATA.value)
 
 
+async def get_random_fact() -> str:
+    """Get random wiki page info"""
+    searcher = WikiSearcher(action='query', format='json')
+    random_title = await searcher.get_random_wiki_title()
+    object_description = await searcher.get_object_wiki_info(random_title)
+    return object_description
 
 def check_if_data_correct(data: dict[str]) -> typing.Union[bool, str]:
     """Check if data is ok with the requirements"""
