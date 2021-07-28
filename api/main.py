@@ -89,14 +89,14 @@ async def web_app() -> 'web.Application':
     storage = await create_redis_storage()
     setup(app, storage)
     app.add_routes(app_route)
-    app.on_cleanup.append(on_shutdown)
+    app.on_cleanup.append(on_cleanup)
     await connect_to_db(settings.create_db_uri())
     apply_migrations(settings)
     logger.info('Finishing starting process')
     return app
 
 
-async def on_shutdown(app: web.Application):
+async def on_cleanup(app: web.Application):
     """Closing connection to db"""
     logger.info('Closing db connection')
     await db.pop_bind().close()
