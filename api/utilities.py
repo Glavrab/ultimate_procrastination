@@ -1,10 +1,39 @@
+import random
 import re
 import typing
-import bcrypt
-from database.models import User
-from shared.constants import PasswordErrorMessage, LoginErrorMessage
-from shared.exceptions import PasswordError, LoginError
 
+import bcrypt
+import ujson
+from aiohttp import web
+from aiohttp_session import (
+    new_session,
+    Session,
+    get_session,
+)
+from aiohttp_session.redis_storage import RedisStorage
+
+from database.models import User, Title, Rating
+from shared.constants import (
+    PasswordErrorMessage,
+    LoginErrorMessage,
+    Codes,
+    RateCommand,
+)
+from shared.exceptions import PasswordError, LoginError
+from aioredis import create_redis_pool
+from wiki_searcher.searcher import WikiSearcher
+
+
+async def create_redis_storage():
+    """Create redis storage for app"""
+    redis = await create_redis_pool(f'redis://procrastination_redis')
+    storage = RedisStorage(
+        redis,
+        cookie_name='PROCRASTINATION_SESSION',
+        encoder=ujson.dumps,
+        decoder=ujson.loads,
+    )
+    return storage
 
 async def register_user(data: dict[str]):
     """Register user"""

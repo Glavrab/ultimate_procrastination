@@ -26,7 +26,9 @@ async def register(request: web.Request):
 async def web_app() -> 'web.Application':
     """Start app entrypoint"""
     logger.info('Starting app web app')
-    app = web.Application()
+    app = web.Application(debug=True)
+    storage = await create_redis_storage()
+    setup(app, storage)
     app.add_routes(app_route)
     app.on_cleanup.append(on_shutdown)
     await connect_to_db(settings.create_db_uri())
