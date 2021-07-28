@@ -1,11 +1,4 @@
-import typing
-from database.models import (
-    PhysicsTitle,
-    BiologyTitle,
-    HistoryTitle,
-    ChemistryTitle,
-    ItTitle,
-)
+from database.models import Title
 from wiki_searcher.utilities import process_searching
 from shared.constants import SearchedObjectTypes
 
@@ -27,10 +20,11 @@ class WikiSearcher:
             except KeyError:
                 print('Wrong arguments, requires keys: prop, title')
 
-    async def get_object_wiki_info(self) -> str:
+    async def get_object_wiki_info(self, title: str) -> str:
         """Get info about specific object"""
         search_settings = self.main_search_settings
         search_settings.update(
+            titles=title,
             prop='extracts',
             exlimit=1,
             exintro=1,  # Search options for correct text representation only of main description
@@ -55,8 +49,8 @@ class WikiSearcher:
     async def get_subcategories_titles(
             self,
             searched_object: str,
-            title_db_model: typing.Union['PhysicsTitle', 'ChemistryTitle', 'ItTitle', 'BiologyTitle', 'HistoryTitle'],
-            max_amount_of_objects_for_level: int,
+            object_type_id: int,
+            amount_of_searched_objects: int,
     ) -> list[str]:
         """Get subcategories titles for required object and write them into db"""
         search_settings = self.main_search_settings
@@ -64,13 +58,12 @@ class WikiSearcher:
             list=SearchedObjectTypes.CATEGORY_MEMBERS.value,
             cmtitle=searched_object,
             cmtype=SearchedObjectTypes.PAGE.value + '|' + SearchedObjectTypes.SUBCATEGORY.value,
-            cmlimit=max_amount_of_objects_for_level,
+            cmlimit=amount_of_searched_objects,
         )
         titles, categories = await process_searching(
             search_settings,
-            SearchedObjectTypes.CATEGORY_MEMBERS.value
+            SearchedObjectTypes.CATEGORY_MEMBERS.value,
         )
         for title in titles:
-            # await title_db_model.create(title_name=title)
-            pass             # TODO: write down founded titles into db
+            await Title.create(title_name=title, title_type_id=object_type_id)
         return categories
