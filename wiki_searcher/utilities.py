@@ -11,8 +11,8 @@ async def process_searching(search_settings: dict[typing.Union[str, int]],
         response = await session.get(Wiki.API_URL.value, params=search_settings)
         await session.close()
     if task != SearchedObjectTypes.CATEGORY_MEMBERS.value:
-        return get_object_info_for_one_page(await response.json())
-    return get_titles_and_categories(await response.json())
+        return get_object_info_for_one_page(await response.json(loads=ujson.loads))
+    return get_titles_and_categories(await response.json(loads=ujson.loads))
 
 
 def get_object_info_for_one_page(data: dict[str]) -> str:
