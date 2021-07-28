@@ -135,14 +135,18 @@ async def process_rating(data: dict, session: 'Session') -> tuple[str, str, dict
 
 async def _check_if_data_correct(data: dict[str]):
     """Check if data is ok with the requirements"""
-    password = data['passwords']['password']
-    if password != data['passwords']['repeated_password']:
+    password = data['password']
+    user = await User.get_user_by_username(data['username'])
+    if user:
+        raise LoginError(LoginErrorMessage.USER_ALREADY_EXIST.value)
+    if password != data['repeated_password']:
         raise PasswordError(PasswordErrorMessage.UNMATCHED_PASSWORD.value)
-    elif re.search('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,16}$', password):
+    elif not re.search('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,16}$', password) or not re.match('^[a-zA-Z0-9$@].{4,'
+                                                                                                  '20}$', password):
         raise PasswordError(PasswordErrorMessage.INELIGIBLE_PASSWORD.value)
-    elif re.match('^[a-zA-Z0-9$@].{4,20}$', data['username']):
+    elif not re.match('^[a-zA-Z0-9$@].{4,20}$', data['username']):
         raise LoginError(LoginErrorMessage.INELIGIBLE_LOGIN.value)
-    return True
+    return
 
 
 def _hash_password(password: str) -> str:
