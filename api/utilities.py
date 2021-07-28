@@ -40,6 +40,7 @@ async def register_user(data: dict[str]) -> dict[str]:
     """Register user"""
     await _check_if_data_correct(data)
     hashed_password = _hash_password(data['password'])
+    # TODO: add email confirmation
     if data.setdefault('telegram_id'):
         await User.create(
             username=data['username'],
