@@ -3,15 +3,17 @@ import enum
 
 class PasswordErrorMessage(enum.Enum):
     """Password errors messages"""
-    UNMATCHED_PASSWORD = 'typed passwords do not match up'
-    INELIGIBLE_PASSWORD = 'password must have at least one' \
+    UNMATCHED_PASSWORD = 'Typed passwords do not match up'
+    INELIGIBLE_PASSWORD = 'Password must have at least one' \
                           ' uppercase letter and one number' \
                           ' password length should be 8-16 '
 
 
 class LoginErrorMessage(enum.Enum):
     """Login error messages"""
-    INELIGIBLE_LOGIN = 'login should consist of english letters and numbers'
+    INELIGIBLE_LOGIN = 'Login should consist of latin letters and numbers'
+    INCORRECT_DATA = 'Incorrect login or password'
+    USER_ALREADY_EXIST = 'This login already exist'
 
 
 class Wiki(enum.Enum):
