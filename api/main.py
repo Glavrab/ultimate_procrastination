@@ -35,6 +35,52 @@ async def register(request: web.Request):
         return web.json_response(response, dumps=ujson.dumps)
 
 
+@app_route.post('/login')
+async def login(request: web.Request):
+    data = await request.json(loads=ujson.loads)
+    logger.debug(f'Authorization attempt by user:{data["username"]}')
+    try:
+        response = await login_user(data, request)
+        logger.debug(f'Successful authorization by user:{data["username"]}')
+        return web.json_response(response, dumps=ujson.dumps)
+    except LoginError as error:
+        response = {'error': str(error)}
+        logger.debug(f'Unsuccessful authorization by user:{data["username"]}, error:{error}')
+        return web.json_response(response, dumps=ujson.dumps)
+
+
+@app_route.get('/random_fact')
+async def get_random_fact(request: web.Request):
+    if not await check_if_user_logged_in(request):
+        raise web.HTTPFound('/login')
+    session = await get_session(request)
+    logger.debug(f'User:{session["username"]}, session id:{session.identity} asked for random info')
+    object_description = await get_random_fact()
+    response = {'random_fact': object_description}
+    return web.json_response(response, dumps=ujson.dumps)
+
+
+@app_route.get('/random_rated_fact')
+async def get_random_rated_fact(request: web.Request):
+    if not await check_if_user_logged_in(request):
+        raise web.HTTPFound('/login')
+    session = await get_session(request)
+    logger.debug(f'User:{session["username"]} session_id:{session.identity} asked for random rated fact')
+    object_description, title_name = await get_random_rated_fact_info(session)
+    response = {'random_rated_fact': object_description, 'title_name': title_name}
+    return web.json_response(response, dumps=ujson.dumps)
+
+
+@app_route.post('/rate_fact')
+async def rate_fact(request: web.Request):
+    if not await check_if_user_logged_in(request):
+        raise web.HTTPFound('/login')
+    data = await request.json(loads=ujson.loads)
+    session = await get_session(request)
+    username, rate_command, result = await process_rating(data, session)
+    logger.debug(f'User: {session["username"]}, session_id:{session.identity} has proceed command: {rate_command}')
+    return web.json_response(result, dumps=ujson.dumps)
+
 
 async def web_app() -> 'web.Application':
     """Start app entrypoint"""
