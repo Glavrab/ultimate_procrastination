@@ -35,20 +35,38 @@ async def create_redis_storage():
     )
     return storage
 
-async def register_user(data: dict[str]):
+
+async def register_user(data: dict[str]) -> dict[str]:
     """Register user"""
-    check_if_data_correct(data)
-    hashed_password = hash_password(data['passwords']['password'])
-    if check_for_telegram_user(data):
+    await _check_if_data_correct(data)
+    hashed_password = _hash_password(data['password'])
+    if data.setdefault('telegram_id'):
         await User.create(
-                username=data['username'],
-                password=hashed_password,
-                telegram_id=data['telegram_id'],
-            )
-    await User.create(
-        username=data['username'],
-        password=hashed_password,
-    )
+            username=data['username'],
+            password=hashed_password,
+            telegram_id=data['telegram_id'],
+            email=data['email']
+        )
+    else:
+        await User.create(
+            username=data['username'],
+            password=hashed_password,
+            email=data['email']
+        )
+    return {'result': Codes.SUCCESS.value}
+
+
+async def login_user(data: dict[str], request: web.Request) -> typing.Optional[dict[str]]:
+    """Login user"""
+    username = data['username']
+    user = await User.get_user_by_username(username)
+    if user:
+        if bcrypt.checkpw(data['password'].encode('utf-8'), bytes(user.password, encoding='utf8')):
+            session: 'Session' = await new_session(request)
+            session['username'], session['user_id'] = username, user.id
+            return {'result': Codes.SUCCESS.value}
+    raise LoginError(LoginErrorMessage.INCORRECT_DATA.value)
+
 
 
 def check_if_data_correct(data: dict[str]) -> typing.Union[bool, str]:
@@ -63,17 +81,7 @@ def check_if_data_correct(data: dict[str]) -> typing.Union[bool, str]:
     return True
 
 
-def hash_password(passwords: dict[str]) -> str:
+def _hash_password(password: str) -> str:
     """Hash password with salt"""
-    password = passwords['password']
-    hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt(rounds=8))
-    return str(hashed_password)
-
-
-def check_for_telegram_user(data: dict[str]) -> bool:
-    """Look for telegram_id in data"""
-    user_info = list(data.keys())
-    for info in user_info:
-        if info == 'telegram_id':
-            return True
-    return False
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    return hashed_password.decode('utf-8')
