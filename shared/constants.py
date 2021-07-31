@@ -11,11 +11,11 @@ class CurrentTask(enum.Enum):
 
 class URL(enum.Enum):
     """Urls for accessing API"""
-    REGISTER = 'procrastination_web:8000/registration'
-    LOGIN = 'procrastination_web:8000/login'
-    RANDOM_FACT = 'procrastination_web:8000/random_fact'
-    RANDOM_RATED_FACT = 'procrastination_web:8000/random_rated_fact'
-    RATE_FACT = 'procrastination_web:8000/rate_fact'
+    REGISTER = 'http://procrastination_web:8000/registration'
+    LOGIN = 'http://procrastination_web:8000/login'
+    RANDOM_FACT = 'http://procrastination_web:8000/random_fact'
+    RANDOM_RATED_FACT = 'http://procrastination_web:8000/random_rated_fact'
+    RATE_FACT = 'http://procrastination_web:8000/rate_fact'
 
 
 class InfoTypeId(enum.Enum):
