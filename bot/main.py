@@ -5,13 +5,13 @@ from aiogram.utils.executor import start_polling
 from aiogram.dispatcher import filters
 from aiogram.dispatcher import FSMContext
 from loguru import logger
+from shared.utilities import get_all_enum_values
 from shared.constants import CurrentTask, RateCommand
 from bot.authorization_handlers import register_authorization_module
 from bot.constants import bot, dp, AuthorizationForm, MainForm
 from bot.utilities import (
     show_login_menu,
     process_showing_random_fact,
-    get_all_enum_values,
     rate_fact,
 )
 
