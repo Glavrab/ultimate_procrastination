@@ -22,7 +22,7 @@ class WikiSearcher:
 
     async def get_object_wiki_info(self, title: str) -> str:
         """Get info about specific object"""
-        search_settings = self.main_search_settings
+        search_settings = self.main_search_settings.copy()
         search_settings.update(
             titles=title,
             prop='extracts',
@@ -37,7 +37,7 @@ class WikiSearcher:
 
     async def get_random_wiki_title(self) -> str:
         """Get random wikipedia title"""
-        search_settings = self.main_search_settings
+        search_settings = self.main_search_settings.copy()
         search_settings.update(
             list='random',
             rnnamespace=0,  # Searching only for pages
@@ -53,7 +53,7 @@ class WikiSearcher:
             amount_of_searched_objects: int,
     ) -> list[str]:
         """Get subcategories titles for required object and write them into db"""
-        search_settings = self.main_search_settings
+        search_settings = self.main_search_settings.copy()
         search_settings.update(
             list=SearchedObjectTypes.CATEGORY_MEMBERS.value,
             cmtitle=searched_object,
