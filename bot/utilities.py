@@ -117,11 +117,3 @@ def _callback_data_normalize(data: Any) -> Optional[str]:
     if data is None:
         return None
     return json.dumps(data, ensure_ascii=False)
-
-
-def get_all_enum_values(
-        enum: EnumMeta,
-) -> list[typing.Union[str, int]]:
-    """Get all enum fields values"""
-    value_map = map(lambda x: getattr(x, 'value'), enum.__members__.values())
-    return list(value_map)
