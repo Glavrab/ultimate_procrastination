@@ -1,5 +1,3 @@
-import typing
-from enum import EnumMeta
 from shared.constants import URL, CurrentTask
 from loguru import logger
 from aiogram import Bot, types
@@ -41,7 +39,7 @@ async def get_random_rated_fact(state: FSMContext) -> tuple[str, str]:
     """Process Http request to get random rated fact"""
     async with state.proxy() as data:
         session_key = data['session_key']
-    session = ClientSession(cookies={'PROCRASTINATION_SESSION': session_key}, json_serialize=ujson.dumps)
+    session = ClientSession(cookies={'PROCRASTINATION_SESSION': session_key})
     async with session.get(URL.RANDOM_RATED_FACT.value) as response:
         result = await response.json(loads=ujson.loads)
         await session.close()
