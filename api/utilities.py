@@ -19,6 +19,7 @@ from shared.constants import (
     Codes,
     RateCommand,
 )
+from shared.utilities import get_all_enum_values
 from shared.exceptions import PasswordError, LoginError
 from aioredis import create_redis_pool
 from wiki_searcher.searcher import WikiSearcher
@@ -154,3 +155,24 @@ def _hash_password(password: str) -> str:
     """Hash password with salt"""
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     return hashed_password.decode('utf-8')
+
+
+def check_for_required_info_for_login(data: dict[str]):
+    if not data.setdefault('username') or not data.setdefault('password'):
+        raise web.HTTPBadRequest(text='Incorrect data')
+    pass
+
+
+def check_for_required_info_for_registration(data: dict[str]):
+    if not data.setdefault('username') or not data.setdefault('password') or not data.setdefault('email'):
+        raise web.HTTPBadRequest(text='Incorrect data')
+    if not data.setdefault('email'):
+        raise web.HTTPBadRequest(text='Incorrect data')
+    pass
+
+
+def check_for_required_info_to_rate_title(data: dict[str]):
+    available_commands = get_all_enum_values(RateCommand)
+    if not data.setdefault('command') or data['command'] not in available_commands:
+        raise web.HTTPBadRequest(text='Incorrect data')
+    pass
