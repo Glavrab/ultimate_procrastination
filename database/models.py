@@ -34,11 +34,18 @@ class User(db.Model):
         return users
 
 
+class Category(db.Model):
+    __tablename__ = 'categories'
+
+    id = sa.Column(sa.Integer(), primary_key=True)
+    category_name = sa.Column(sa.String(40), unique=True, nullable=False)
+
+
 class Rating(db.Model):
     __tablename__ = 'ratings'
 
     id = sa.Column(sa.Integer(), primary_key=True)
-    category_type_id = sa.Column(sa.Integer(), nullable=False)
+    category_type_id = sa.Column(sa.Integer(), sa.ForeignKey(Category.id, ondelete='CASCADE'), nullable=False)
     user_id = sa.Column(sa.Integer(), sa.ForeignKey(User.id, ondelete='CASCADE'), nullable=False)
     rating_number = sa.Column(sa.Integer(), default=0, nullable=False)
 
@@ -61,7 +68,7 @@ class Title(db.Model):
     __tablename__ = 'titles'
 
     id = sa.Column(sa.Integer(), primary_key=True)
-    title_type_id = sa.Column(sa.Integer(), nullable=False)
+    title_type_id = sa.Column(sa.Integer(), sa.ForeignKey(Category.id, ondelete='CASCADE'), nullable=False)
     title_name = sa.Column(sa.String(40), nullable=False)
     title_rating = sa.Column(sa.Float(), default=0, nullable=False)
     amount_of_likes = sa.Column(sa.Float(), default=0, nullable=False)
