@@ -53,12 +53,11 @@ class Rating(db.Model):
     async def get_user_theme_rating(cls, category_type_id: int, username: str) -> typing.Optional['Rating']:
         """Get users theme like rating"""
         user = await User.get_user_by_username(username)
-        user_id = user.id
         result = await cls.join(User).select().where(
             and_
             (
                 cls.category_type_id == category_type_id,
-                cls.user_id == user_id,
+                cls.user_id == user.id,
             ),
         ).gino.one_or_none()
         return result
