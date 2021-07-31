@@ -23,7 +23,7 @@ from shared.project_settings import settings
 
 DATA_CHECK = {
     'login': check_for_required_info_for_login,
-    'registration': check_for_required_info_for_registration,
+    'registration': check_for_required_info_for_registration,  # Check for the required keys in data to process request
     'rate_process': check_for_required_info_to_rate_title,
     }
 app_route = web.RouteTableDef()
