@@ -85,7 +85,7 @@ async def register_user(user_info: dict[str]) -> dict[str]:
 async def login_user(user_info: dict[str], state: FSMContext) -> tuple[dict[str], str]:
     """Process Http request to login user"""
     session = ClientSession(json_serialize=ujson.dumps)
-    async with session.post(URL.LOGIN.value, data=user_info) as response:
+    async with session.post(URL.LOGIN.value, json=user_info) as response:
         result = await response.json(loads=ujson.loads)
         await session.close()
     if response.cookies.setdefault('PROCRASTINATION_SESSION'):

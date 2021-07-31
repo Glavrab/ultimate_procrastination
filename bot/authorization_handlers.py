@@ -29,7 +29,7 @@ async def process_password(message: types.Message, state: FSMContext):
         await AuthorizationForm.repeated_password.set()
         return
     user_info = await state.get_data('user_info')
-    response, session_key = await login_user(user_info, state)
+    response, session_key = await login_user(user_info['user_info'], state)
     if not session_key:
         await process_authorization_error_scenario(message, response, 'login')
         return
@@ -52,9 +52,9 @@ async def process_repeated_password(message: types.Message, state: FSMContext):
 async def process_email(message: types.Message, state: FSMContext):
     """Process email submission"""
     user_to_register = await state.get_data('user_info')
-    user_to_register['email'] = message.text
+    user_to_register['user_info']['email'] = message.text
     logger.debug(f'Telegram user: {message.from_user.id} has submitted email: {message.text}')
-    response = await register_user(user_to_register)
+    response = await register_user(user_to_register['user_info'])
     result = response.setdefault('result')
     if not result:
         await process_authorization_error_scenario(message, response, 'registration')
