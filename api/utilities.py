@@ -138,8 +138,9 @@ async def process_rating(data: dict, session: 'Session') -> tuple[str, str, dict
 async def _check_if_data_correct(data: dict[str]):
     """Check if data is ok with the requirements"""
     password = data['password']
-    user = await User.get_user_by_username(data['username'])
-    if user:
+    user_by_username = await User.get_user_by_username(data['username'])
+    user_by_email = await User.get_user_by_email(data['email'])
+    if user_by_username or user_by_email:
         raise LoginError(LoginErrorMessage.USER_ALREADY_EXIST.value)
     if password != data['repeated_password']:
         raise PasswordError(PasswordErrorMessage.UNMATCHED_PASSWORD.value)

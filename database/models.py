@@ -28,6 +28,11 @@ class User(db.Model):
         return user
 
     @classmethod
+    async def get_user_by_email(cls, email: str) -> typing.Optional['User']:
+        user = await cls.query.where(User.email == email).gino.one_or_none()
+        return user
+
+    @classmethod
     async def get_all_telegram_users(cls) -> list['User']:
         """Get all telegram users from db"""
         users = await cls.query.where(cls.telegram_id > 0).gino.all()
