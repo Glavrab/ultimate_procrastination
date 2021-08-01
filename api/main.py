@@ -21,18 +21,13 @@ from shared.exceptions import PasswordError, LoginError
 from shared.project_settings import settings
 
 
-DATA_CHECK = {
-    'login': check_for_required_info_for_login,
-    'registration': check_for_required_info_for_registration,  # Check for the required keys in data to process request
-    'rate_process': check_for_required_info_to_rate_title,
-    }
 app_route = web.RouteTableDef()
 
 
 @app_route.post('/registration')
 async def register(request: web.Request):
     data = await request.json(loads=ujson.loads)
-    DATA_CHECK['registration'](data)
+    check_for_required_info_for_registration(data)
     logger.debug(f'User: {data["username"]} is trying to register')
     try:
         response = await register_user(data)
@@ -47,7 +42,7 @@ async def register(request: web.Request):
 @app_route.post('/login')
 async def login(request: web.Request):
     data = await request.json(loads=ujson.loads)
-    DATA_CHECK['login'](data)
+    check_for_required_info_for_login(data)
     logger.debug(f'Authorization attempt by user:{data["username"]}')
     try:
         response = await login_user(data, request)
@@ -86,7 +81,7 @@ async def rate_fact(request: web.Request):
     if not await check_if_user_logged_in(request):
         raise web.HTTPFound('/login')
     data = await request.json(loads=ujson.loads)
-    DATA_CHECK['rate_process'](data)
+    check_for_required_info_to_rate_title(data)
     session = await get_session(request)
     username, rate_command, result = await process_rating(data, session)
     logger.debug(f'User: {session["username"]}, session_id:{session.identity} has proceed command: {rate_command}')
