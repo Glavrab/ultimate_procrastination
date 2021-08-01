@@ -148,7 +148,6 @@ async def _check_if_data_correct(data: dict[str]):
         raise PasswordError(PasswordErrorMessage.INELIGIBLE_PASSWORD.value)
     elif not re.match('^[a-zA-Z0-9$@].{4,20}$', data['username']):
         raise LoginError(LoginErrorMessage.INELIGIBLE_LOGIN.value)
-    return
 
 
 def _hash_password(password: str) -> str:
@@ -160,7 +159,6 @@ def _hash_password(password: str) -> str:
 def check_for_required_info_for_login(data: dict[str]):
     if not data.setdefault('username') or not data.setdefault('password'):
         raise web.HTTPBadRequest(text='Incorrect data')
-    pass
 
 
 def check_for_required_info_for_registration(data: dict[str]):
@@ -168,11 +166,9 @@ def check_for_required_info_for_registration(data: dict[str]):
         raise web.HTTPBadRequest(text='Incorrect data')
     if not data.setdefault('email'):
         raise web.HTTPBadRequest(text='Incorrect data')
-    pass
 
 
 def check_for_required_info_to_rate_title(data: dict[str]):
     available_commands = get_all_enum_values(RateCommand)
     if not data.setdefault('command') or data['command'] not in available_commands:
         raise web.HTTPBadRequest(text='Incorrect data')
-    pass
