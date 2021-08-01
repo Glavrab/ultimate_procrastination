@@ -172,8 +172,6 @@ def check_for_required_info_for_registration(data: dict[str]):
             or RequiredData.PASSWORD.value not in data.keys() \
             or RequiredData.REPEATED_PASSWORD.value not in data.keys():
         raise web.HTTPBadRequest(text='Incorrect data')
-    if not data.setdefault('email'):
-        raise web.HTTPBadRequest(text='Incorrect data')
 
 
 def check_for_required_info_to_rate_title(data: dict[str]):
