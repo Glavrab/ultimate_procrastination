@@ -31,8 +31,8 @@ async def rate_fact(state: FSMContext, rate_command: str):
     async with state.proxy() as data:
         session_key = data['session_key']
     session = ClientSession(cookies={'PROCRASTINATION_SESSION': session_key}, json_serialize=ujson.dumps)
-    await session.post(URL.RATE_FACT.value, json={'command': rate_command})
-    await session.close()
+    async with session.post(URL.RATE_FACT.value, json={'command': rate_command}):
+        await session.close()
 
 
 async def get_random_rated_fact(state: FSMContext) -> tuple[str, str]:
