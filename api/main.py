@@ -91,7 +91,7 @@ async def rate_fact(request: web.Request):
 async def web_app() -> 'web.Application':
     """Start app entrypoint"""
     logger.info('Starting app web app')
-    app = web.Application(debug=True)
+    app = web.Application(debug=settings.debug_status)
     storage = await create_redis_storage()
     setup(app, storage)
     app.add_routes(app_route)
