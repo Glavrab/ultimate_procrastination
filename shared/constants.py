@@ -1,6 +1,16 @@
 import enum
 
 
+class RequiredData(enum.Enum):
+    """Required data to process request"""
+    USERNAME = 'username'
+    PASSWORD = 'password'
+    REPEATED_PASSWORD = 'repeated_password'
+    EMAIL = 'email'
+    TELEGRAM_ID = 'telegram_id'
+    COMMAND = 'command'
+
+
 class CurrentTask(enum.Enum):
     """Current task processing by user"""
     LOGIN_PAGE = 'Login page'
