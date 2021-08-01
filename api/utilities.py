@@ -150,6 +150,11 @@ async def _check_if_data_correct(data: dict[str]):
         raise LoginError(LoginErrorMessage.INELIGIBLE_LOGIN.value)
 
 
+def create_json_response(data: dict[typing.Union[str, int]]) -> web.Response:
+    """Json response using ujson.dumps"""
+    return web.json_response(data, dumps=ujson.dumps)
+
+
 def _hash_password(password: str) -> str:
     """Hash password with salt"""
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())

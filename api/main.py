@@ -13,7 +13,8 @@ from api.utilities import (
     process_rating,
     check_for_required_info_for_login,
     check_for_required_info_for_registration,
-    check_for_required_info_to_rate_title
+    check_for_required_info_to_rate_title,
+    create_json_response,
 )
 from database.models import connect_to_db, db
 from database.utilities import apply_migrations
@@ -32,11 +33,11 @@ async def register(request: web.Request):
     try:
         response = await register_user(data)
         logger.debug(f'Successful registration by user: {data["username"]}')
-        return web.json_response(response, dumps=ujson.dumps)
+        return create_json_response(response)
     except (LoginError, PasswordError) as error:
         response = {'error': str(error)}
         logger.debug(f'Registration error: {error}, user: {data["username"]}')
-        return web.json_response(response, dumps=ujson.dumps)
+        return create_json_response(response)
 
 
 @app_route.post('/login')
@@ -47,11 +48,11 @@ async def login(request: web.Request):
     try:
         response = await login_user(data, request)
         logger.debug(f'Successful authorization by user:{data["username"]}')
-        return web.json_response(response, dumps=ujson.dumps)
+        return create_json_response(response)
     except LoginError as error:
         response = {'error': str(error)}
         logger.debug(f'Unsuccessful authorization by user:{data["username"]}, error:{error}')
-        return web.json_response(response, dumps=ujson.dumps)
+        return create_json_response(response)
 
 
 @app_route.get('/random_fact')
@@ -62,7 +63,7 @@ async def get_random_fact(request: web.Request):
     logger.debug(f'User:{session["username"]}, session id:{session.identity} asked for random info')
     object_description = await get_random_fact()
     response = {'random_fact': object_description}
-    return web.json_response(response, dumps=ujson.dumps)
+    return create_json_response(response)
 
 
 @app_route.get('/random_rated_fact')
@@ -73,7 +74,7 @@ async def get_random_rated_fact(request: web.Request):
     logger.debug(f'User:{session["username"]} session_id:{session.identity} asked for random rated fact')
     object_description, title_name = await get_random_rated_fact_info(session)
     response = {'random_rated_fact': object_description, 'title_name': title_name}
-    return web.json_response(response, dumps=ujson.dumps)
+    return create_json_response(response)
 
 
 @app_route.post('/rate_fact')
@@ -83,9 +84,9 @@ async def rate_fact(request: web.Request):
     data = await request.json(loads=ujson.loads)
     check_for_required_info_to_rate_title(data)
     session = await get_session(request)
-    username, rate_command, result = await process_rating(data, session)
+    username, rate_command, response = await process_rating(data, session)
     logger.debug(f'User: {session["username"]}, session_id:{session.identity} has proceed command: {rate_command}')
-    return web.json_response(result, dumps=ujson.dumps)
+    return create_json_response(response)
 
 
 async def web_app() -> 'web.Application':
