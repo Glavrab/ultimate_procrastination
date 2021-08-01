@@ -39,7 +39,6 @@ async def processing_start_command_working(message: Union[types.Message, types.C
     logger.debug(f'Starting up authentication process by telegram user: {message.from_user.id}')
     await bot.send_message(message.from_user.id, 'Type your username')
     await AuthorizationForm.username.set()
-    return
 
 
 @dp.callback_query_handler(filters.Regexp(regexp=CurrentTask.LOGIN_PAGE.value), state='*')
@@ -48,7 +47,6 @@ async def get_back_to_login_page(message: types.CallbackQuery, state: FSMContext
     await state.reset_data()
     await show_login_menu(bot, message.from_user.id)
     await MainForm.start.set()
-    return
 
 
 @dp.callback_query_handler(state=MainForm.work_process)
@@ -58,7 +56,6 @@ async def process_getting_random_fact(message: types.CallbackQuery, state: FSMCo
     if message.data in commands:
         await rate_fact(state, message.data)
     await process_showing_random_fact(bot, state, message, commands)
-    return
 
 
 async def on_startup(dispatcher: Dispatcher):

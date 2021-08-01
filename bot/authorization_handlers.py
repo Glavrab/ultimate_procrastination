@@ -16,7 +16,6 @@ async def process_username(message: types.Message, state: FSMContext):
     logger.debug(f'Telegram user: {message.from_user.id} has submitted username {message.text}')
     await message.answer('Type your password')
     await AuthorizationForm.password.set()
-    return
 
 
 async def process_password(message: types.Message, state: FSMContext):
@@ -36,7 +35,6 @@ async def process_password(message: types.Message, state: FSMContext):
     await state.set_data({'session_key': session_key})
     await message.answer('Successful login!', reply_markup=create_inline_keyboard(['Get random fact']))
     await MainForm.work_process.set()
-    return
 
 
 async def process_repeated_password(message: types.Message, state: FSMContext):
@@ -46,7 +44,6 @@ async def process_repeated_password(message: types.Message, state: FSMContext):
     logger.debug(f'Telegram user: {message.from_user.id} has submitted repeated password: {message.text}')
     await message.answer('Last step type your email')
     await AuthorizationForm.email.set()
-    return
 
 
 async def process_email(message: types.Message, state: FSMContext):
@@ -64,7 +61,6 @@ async def process_email(message: types.Message, state: FSMContext):
     logger.debug(f'Successful registration by user: {user_info["username"]}')
     await message.answer('Successful registration!', reply_markup=create_inline_keyboard(['Get random fact']))
     await MainForm.work_process.set()
-    return
 
 
 def register_authorization_module(dp: Dispatcher):
