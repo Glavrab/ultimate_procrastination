@@ -18,6 +18,7 @@ from shared.constants import (
     LoginErrorMessage,
     Codes,
     RateCommand,
+    RequiredData,
 )
 from shared.project_settings import settings
 from shared.utilities import get_all_enum_values
@@ -42,7 +43,7 @@ async def register_user(data: dict[str]) -> dict[str]:
     """Register user"""
     await _check_if_data_correct(data)
     hashed_password = _hash_password(data['password'])
-    if data.setdefault('telegram_id'):
+    if RequiredData.TELEGRAM_ID.value in data.keys():
         await User.create(
             username=data['username'],
             password=hashed_password,
@@ -142,8 +143,8 @@ async def _check_if_data_correct(data: dict[str]):
         raise LoginError(LoginErrorMessage.USER_ALREADY_EXIST.value)
     if password != data['repeated_password']:
         raise PasswordError(PasswordErrorMessage.UNMATCHED_PASSWORD.value)
-    elif not re.search('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,16}$', password) or not re.match('^[a-zA-Z0-9$@].{4,'
-                                                                                                  '20}$', password):
+    elif not re.search('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,16}$', password) or not re.match('^[a-zA-Z0-9$@].{8,'
+                                                                                                  '16}$', password):
         raise PasswordError(PasswordErrorMessage.INELIGIBLE_PASSWORD.value)
     elif not re.match('^[a-zA-Z0-9$@].{4,20}$', data['username']):
         raise LoginError(LoginErrorMessage.INELIGIBLE_LOGIN.value)
@@ -156,12 +157,14 @@ def _hash_password(password: str) -> str:
 
 
 def check_for_required_info_for_login(data: dict[str]):
-    if not data.setdefault('username') or not data.setdefault('password'):
+    if RequiredData.USERNAME.value not in data.keys() or RequiredData.PASSWORD.value not in data.keys():
         raise web.HTTPBadRequest(text='Incorrect data')
 
 
 def check_for_required_info_for_registration(data: dict[str]):
-    if not data.setdefault('username') or not data.setdefault('password') or not data.setdefault('email'):
+    if RequiredData.EMAIL.value not in data.keys() or RequiredData.USERNAME.value not in data.keys() \
+            or RequiredData.PASSWORD.value not in data.keys() \
+            or RequiredData.REPEATED_PASSWORD.value not in data.keys():
         raise web.HTTPBadRequest(text='Incorrect data')
     if not data.setdefault('email'):
         raise web.HTTPBadRequest(text='Incorrect data')
@@ -169,5 +172,5 @@ def check_for_required_info_for_registration(data: dict[str]):
 
 def check_for_required_info_to_rate_title(data: dict[str]):
     available_commands = get_all_enum_values(RateCommand)
-    if not data.setdefault('command') or data['command'] not in available_commands:
+    if RequiredData.COMMAND.value not in data.keys() or data['command'] not in available_commands:
         raise web.HTTPBadRequest(text='Incorrect data')
