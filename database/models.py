@@ -54,8 +54,7 @@ class Rating(db.Model):
         """Get users theme like rating"""
         user = await User.get_user_by_username(username)
         result = await cls.join(User).select().where(
-            and_
-            (
+            and_(
                 cls.category_type_id == category_type_id,
                 cls.user_id == user.id,
             ),
@@ -84,8 +83,7 @@ class Title(db.Model):
         """Get one title by its category"""
         amount_of_titles = await cls.get_amount_of_titles_by_type(title_type)
         title = await cls.select().where(
-            and_
-            (
+            and_(
                 cls.title_type_id == title_type,
                 cls.id == randint(0, amount_of_titles),
             ),
