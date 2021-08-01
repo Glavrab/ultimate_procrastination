@@ -19,6 +19,7 @@ from shared.constants import (
     Codes,
     RateCommand,
 )
+from shared.project_settings import settings
 from shared.utilities import get_all_enum_values
 from shared.exceptions import PasswordError, LoginError
 from aioredis import create_redis_pool
@@ -27,7 +28,7 @@ from wiki_searcher.searcher import WikiSearcher
 
 async def create_redis_storage():
     """Create redis storage for app"""
-    redis = await create_redis_pool(f'redis://procrastination_redis')
+    redis = await create_redis_pool(f'redis://procrastination_redis', password=settings.redis_password)
     storage = RedisStorage(
         redis,
         cookie_name='PROCRASTINATION_SESSION',
