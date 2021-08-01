@@ -41,7 +41,6 @@ async def register_user(data: dict[str]) -> dict[str]:
     """Register user"""
     await _check_if_data_correct(data)
     hashed_password = _hash_password(data['password'])
-    # TODO: add email confirmation
     if data.setdefault('telegram_id'):
         await User.create(
             username=data['username'],
@@ -80,7 +79,6 @@ async def get_random_fact() -> str:
 
 async def get_random_rated_fact_info(session: 'Session') -> tuple[str, str]:
     """Get random rated fact"""
-    # TODO: get fact according to users preferences
     topic_type_number = random.randint(0, 4)
     rated_title = await Title.get_random_title_by_category(topic_type_number)
     session['last_rated_topic_id'] = rated_title.id
