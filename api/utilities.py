@@ -19,6 +19,9 @@ from shared.constants import (
     Codes,
     RateCommand,
     RequiredData,
+    PASSWORD_COMPOUNDS_REQUIREMENTS_PATTERN,
+    LOGIN_COMPOUNDS_REQUIREMENTS_PATTERN,
+    PASSWORD_SYMBOLS_REQUIREMENTS_PATTERN,
 )
 from shared.project_settings import settings
 from shared.utilities import get_all_enum_values
@@ -144,10 +147,12 @@ async def _check_if_data_correct(data: dict[str]):
         raise LoginError(LoginErrorMessage.USER_ALREADY_EXIST.value)
     if password != data['repeated_password']:
         raise PasswordError(PasswordErrorMessage.UNMATCHED_PASSWORD.value)
-    elif not re.search('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,16}$', password) or not re.match('^[a-zA-Z0-9$@].{8,'
-                                                                                                  '16}$', password):
+    elif not re.search(PASSWORD_SYMBOLS_REQUIREMENTS_PATTERN, password) or not re.match(
+            PASSWORD_COMPOUNDS_REQUIREMENTS_PATTERN,
+            password,
+    ):
         raise PasswordError(PasswordErrorMessage.INELIGIBLE_PASSWORD.value)
-    elif not re.match('^[a-zA-Z0-9$@].{4,20}$', data['username']):
+    elif not re.match(LOGIN_COMPOUNDS_REQUIREMENTS_PATTERN, data['username']):
         raise LoginError(LoginErrorMessage.INELIGIBLE_LOGIN.value)
 
 

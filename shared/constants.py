@@ -1,4 +1,10 @@
 import enum
+import re
+
+
+PASSWORD_SYMBOLS_REQUIREMENTS_PATTERN = re.compile('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,16}$')
+PASSWORD_COMPOUNDS_REQUIREMENTS_PATTERN = re.compile('^[a-zA-Z0-9$@]')
+LOGIN_COMPOUNDS_REQUIREMENTS_PATTERN = re.compile('^[a-zA-Z0-9$@].{4,20}$')
 
 
 class RequiredData(enum.Enum):
