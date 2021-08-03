@@ -28,11 +28,11 @@ async def process_password(message: types.Message, state: FSMContext):
         await AuthorizationForm.repeated_password.set()
         return
     user_info = await state.get_data('user_info')
-    response, session_key = await login_user(user_info['user_info'], state)
-    if not session_key:
+    response, successful = await login_user(user_info['user_info'], state)
+    if not successful:
         await process_authorization_error_scenario(message, response, 'login')
         return
-    await state.set_data({'session_key': session_key})
+    await state.set_data({'session_key': response['PROCRASTINATION_SESSION']})
     await message.answer('Successful login!', reply_markup=create_inline_keyboard(['Get random fact']))
     await MainForm.work_process.set()
 
@@ -52,8 +52,7 @@ async def process_email(message: types.Message, state: FSMContext):
     user_to_register['user_info']['email'] = message.text
     logger.debug(f'Telegram user: {message.from_user.id} has submitted email: {message.text}')
     response = await register_user(user_to_register['user_info'])
-    result = response.setdefault('result')
-    if not result:
+    if 'result' not in response.keys():
         await process_authorization_error_scenario(message, response, 'registration')
         return
     user_info = {'username': user_to_register['username'], 'password': user_to_register['password']}

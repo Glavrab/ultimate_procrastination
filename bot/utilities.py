@@ -80,16 +80,19 @@ async def register_user(user_info: dict[str]) -> dict[str]:
     return result
 
 
-async def login_user(user_info: dict[str], state: FSMContext) -> tuple[dict[str], str]:
+async def login_user(user_info: dict[str], state: FSMContext) -> tuple[dict[str], bool]:
     """Process Http request to login user"""
     session = ClientSession(json_serialize=ujson.dumps)
     async with session.post(URL.LOGIN.value, json=user_info) as response:
         result = await response.json(loads=ujson.loads)
         await session.close()
-    if response.cookies.setdefault('PROCRASTINATION_SESSION'):
+    if 'PROCRASTINATION_SESSION' in result.keys():
+        successful = True
         async with state.proxy() as data:
             data['session_key'] = response.cookies['PROCRASTINATION_SESSION']
-    return result, response.cookies.setdefault('PROCRASTINATION_SESSION')
+        return result, successful
+    successful = False
+    return result, successful
 
 
 def create_inline_keyboard(buttons: list[str],
