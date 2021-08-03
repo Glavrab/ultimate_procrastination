@@ -2,6 +2,7 @@ import ujson
 from aiohttp import web
 from aiohttp_session import setup, get_session
 from loguru import logger
+
 from api.utilities import (
     register_user,
     login_user,

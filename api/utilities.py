@@ -2,6 +2,7 @@ import random
 import re
 import typing
 from functools import wraps
+
 import bcrypt
 import ujson
 from aiohttp import web
@@ -11,6 +12,8 @@ from aiohttp_session import (
     get_session,
 )
 from aiohttp_session.redis_storage import RedisStorage
+from aioredis import create_redis_pool
+
 from database.models import User, Title, Rating, db
 from shared.constants import (
     PasswordErrorMessage,
@@ -22,10 +25,9 @@ from shared.constants import (
     LOGIN_COMPOUNDS_REQUIREMENTS_PATTERN,
     PASSWORD_SYMBOLS_REQUIREMENTS_PATTERN,
 )
+from shared.exceptions import PasswordError, LoginError
 from shared.project_settings import settings
 from shared.utilities import get_all_enum_values
-from shared.exceptions import PasswordError, LoginError
-from aioredis import create_redis_pool
 from wiki_searcher.searcher import WikiSearcher
 
 

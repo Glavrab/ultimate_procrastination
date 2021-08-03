@@ -1,8 +1,9 @@
 from aiogram import types, Dispatcher
-from bot.utilities import register_user, create_inline_keyboard, login_user, process_authorization_error_scenario
 from aiogram.dispatcher import FSMContext
 from loguru import logger
+
 from bot.constants import AuthorizationForm, MainForm
+from bot.utilities import register_user, create_inline_keyboard, login_user, process_authorization_error_scenario
 from shared.constants import CurrentTask
 
 

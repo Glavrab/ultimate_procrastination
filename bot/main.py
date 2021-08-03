@@ -1,12 +1,12 @@
 """Main bot handlers"""
 from typing import Union
+
 from aiogram import Dispatcher, types
-from aiogram.utils.executor import start_polling
-from aiogram.dispatcher import filters
 from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher import filters
+from aiogram.utils.executor import start_polling
 from loguru import logger
-from shared.utilities import get_all_enum_values
-from shared.constants import CurrentTask, RateCommand
+
 from bot.authorization_handlers import register_authorization_module
 from bot.constants import bot, dp, AuthorizationForm, MainForm
 from bot.utilities import (
@@ -14,6 +14,8 @@ from bot.utilities import (
     process_showing_random_fact,
     rate_fact,
 )
+from shared.constants import CurrentTask, RateCommand
+from shared.utilities import get_all_enum_values
 
 
 @dp.message_handler(commands='start')

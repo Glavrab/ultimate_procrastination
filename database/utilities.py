@@ -1,6 +1,7 @@
-import alembic.config
 import alembic.command
+import alembic.config
 from loguru import logger
+
 from shared.project_settings import ProjectSettings
 
 

@@ -1,9 +1,10 @@
 """DB entities"""
 import typing
 from random import randint
-from sqlalchemy import and_
+
 import sqlalchemy as sa
 from gino import Gino
+from sqlalchemy import and_
 
 db = Gino()  # DB initialization
 
