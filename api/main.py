@@ -6,8 +6,7 @@ from loguru import logger
 from api.utilities import (
     register_user,
     login_user,
-    get_random_fact,
-    check_if_user_logged_in,
+    get_random_fact_info,
     create_redis_storage,
     get_random_rated_fact_info,
     process_rating,
@@ -60,7 +59,7 @@ async def get_random_fact(request: web.Request):
         raise web.HTTPFound('/login')
     session = await get_session(request)
     logger.debug(f'User:{session["username"]}, session id:{session.identity} asked for random info')
-    object_description = await get_random_fact()
+    object_description = await get_random_fact_info()
     response = {'random_fact': object_description}
     return create_json_response(response)
 

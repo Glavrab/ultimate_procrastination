@@ -74,7 +74,7 @@ async def login_user(data: dict[str], request: web.Request) -> typing.Optional[d
     raise LoginError(LoginErrorMessage.INCORRECT_DATA.value)
 
 
-async def get_random_fact() -> str:
+async def get_random_fact_info() -> str:
     """Get random wiki page info"""
     searcher = WikiSearcher(action='query', format='json')
     random_title = await searcher.get_random_wiki_title()
