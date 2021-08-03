@@ -15,6 +15,8 @@ from api.utilities import (
     check_for_required_info_for_registration,
     check_for_required_info_to_rate_title,
     create_json_response,
+    login_required,
+    json_required,
 )
 from database.models import connect_to_db, db
 from database.utilities import apply_migrations
@@ -22,10 +24,7 @@ from shared.exceptions import PasswordError, LoginError
 from shared.project_settings import settings
 
 
-app_route = web.RouteTableDef()
-
-
-@app_route.post('/registration')
+@json_required
 async def register(request: web.Request):
     data = await request.json(loads=ujson.loads)
     check_for_required_info_for_registration(data)
@@ -40,7 +39,7 @@ async def register(request: web.Request):
         return create_json_response(response)
 
 
-@app_route.post('/login')
+@json_required
 async def login(request: web.Request):
     data = await request.json(loads=ujson.loads)
     check_for_required_info_for_login(data)
@@ -55,7 +54,7 @@ async def login(request: web.Request):
         return create_json_response(response)
 
 
-@app_route.get('/random_fact')
+@login_required
 async def get_random_fact(request: web.Request):
     if not await check_if_user_logged_in(request):
         raise web.HTTPFound('/login')
@@ -66,7 +65,7 @@ async def get_random_fact(request: web.Request):
     return create_json_response(response)
 
 
-@app_route.get('/random_rated_fact')
+@login_required
 async def get_random_rated_fact(request: web.Request):
     if not await check_if_user_logged_in(request):
         raise web.HTTPFound('/login')
@@ -77,7 +76,8 @@ async def get_random_rated_fact(request: web.Request):
     return create_json_response(response)
 
 
-@app_route.post('/rate_fact')
+@login_required
+@json_required
 async def rate_fact(request: web.Request):
     if not await check_if_user_logged_in(request):
         raise web.HTTPFound('/login')

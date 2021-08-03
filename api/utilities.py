@@ -1,7 +1,7 @@
 import random
 import re
 import typing
-
+from functools import wraps
 import bcrypt
 import ujson
 from aiohttp import web
@@ -154,6 +154,33 @@ async def _check_if_data_correct(data: dict[str]):
         raise PasswordError(PasswordErrorMessage.INELIGIBLE_PASSWORD.value)
     elif not re.match(LOGIN_COMPOUNDS_REQUIREMENTS_PATTERN, data['username']):
         raise LoginError(LoginErrorMessage.INELIGIBLE_LOGIN.value)
+
+
+def login_required(handler: typing.Callable[[web.Request], typing.Awaitable[web.Response]]):
+    """Check for authorization to process request"""
+
+    @wraps(handler)
+    async def wrapper(request: web.Request) -> web.Response:
+        session = await get_session(request)
+        if session.new:
+            session.invalidate()
+            raise web.HTTPUnauthorized(text='Requires authorization')
+        return await handler(request)
+
+    return wrapper
+
+
+def json_required(handler: typing.Callable[[web.Request], typing.Awaitable[web.Response]]):
+    """Check for correct request content to process request"""
+
+    @wraps(handler)
+    async def wrapper(request: web.Request) -> web.Response:
+        try:
+            return await handler(request)
+        except ValueError:
+            raise web.HTTPBadRequest(text='Incorrect request content')
+
+    return wrapper
 
 
 def create_json_response(data: dict[typing.Union[str, int]]) -> web.Response:
