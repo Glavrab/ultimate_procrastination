@@ -79,8 +79,6 @@ async def get_random_rated_fact(request: web.Request):
 @login_required
 @json_required
 async def rate_fact(request: web.Request):
-    if not await check_if_user_logged_in(request):
-        raise web.HTTPFound('/login')
     data = await request.json(loads=ujson.loads)
     check_for_required_info_to_rate_title(data)
     session = await get_session(request)
@@ -94,6 +92,7 @@ async def web_app() -> 'web.Application':
     logger.info('Starting app web app')
     app = web.Application(debug=settings.debug_status)
     storage = await create_redis_storage()
+    add_handlers(app)
     setup(app, storage)
     app.add_routes(app_route)
     app.on_cleanup.append(on_cleanup)
@@ -108,3 +107,16 @@ async def on_cleanup(app: web.Application):
     logger.info('Closing db connection')
     await db.pop_bind().close()
     logger.info('Shutting down web app')
+
+
+def add_handlers(app: web.Application):
+    """Add handlers"""
+    app.add_routes(
+        [
+            web.post('/registration', register),
+            web.post('/rate_fact', rate_fact),
+            web.post('/login', login),
+            web.get('/random_fact', get_random_fact),
+            web.get('/random_rated_fact', get_random_rated_fact),
+        ]
+    )
