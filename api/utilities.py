@@ -11,8 +11,7 @@ from aiohttp_session import (
     get_session,
 )
 from aiohttp_session.redis_storage import RedisStorage
-
-from database.models import User, Title, Rating
+from database.models import User, Title, Rating, db
 from shared.constants import (
     PasswordErrorMessage,
     LoginErrorMessage,
@@ -113,26 +112,23 @@ async def process_rating(data: dict, session: 'Session') -> tuple[str, str, dict
     theme_rating = await Rating.get_user_theme_rating(title_type, session['username'])
     if not theme_rating:
         theme_rating = await Rating.create(category_type_id=title_type, user_id=session['user_id'])
-    theme_rating_number = theme_rating.rating_number
 
     if command == RateCommand.LIKE.value:
-        title_rating = (amount_of_likes + 1) / total_amount_of_views
-        await theme_rating.update(rating_number=theme_rating_number + 1).apply()
-        await rated_title.update(
-            amount_of_likes=amount_of_likes + 1,
-            amount_of_views=total_amount_of_views,
-            title_rating=title_rating,
-        ).apply()
-
+        total_amount_of_likes = amount_of_likes + 1
+        title_rating = total_amount_of_likes / total_amount_of_views
+        async with db.transaction() as transaction:
+            await db.status(f'UPDATE ratings SET rating_number=rating_number+1 WHERE id={theme_rating.id}')
+            await db.status(f'UPDATE titles SET title_rating={title_rating}, '
+                            f'amount_of_likes=amount_of_likes+1, '
+                            f'amount_of_views={total_amount_of_views} WHERE id={title_id}')
     elif command == RateCommand.DISLIKE.value:
         total_amount_of_likes = amount_of_likes - 1
         title_rating = total_amount_of_likes / total_amount_of_views
-        await theme_rating.update(rating_number=theme_rating_number - 1).apply()
-        await rated_title.update(
-            amount_of_likes=amount_of_likes - 1,
-            amount_of_views=total_amount_of_views,
-            title_rating=title_rating
-        ).apply()
+        async with db.transaction() as transaction:
+            await db.status(f'UPDATE ratings SET rating_number=rating_number-1 WHERE id={theme_rating.id}')
+            await db.status(f'UPDATE titles SET title_rating={title_rating}, '
+                        f'amount_of_likes={total_amount_of_likes}, '
+                        f'amount_of_views={total_amount_of_views} WHERE id={title_id}')
 
     result = {"result": Codes.SUCCESS.value}
     return session['username'], command, result
