@@ -2,7 +2,6 @@ import ujson
 from aiohttp import web
 from aiohttp_session import setup, get_session
 from loguru import logger
-
 from api.utilities import (
     register_user,
     login_user,
@@ -55,8 +54,6 @@ async def login(request: web.Request):
 
 @login_required
 async def get_random_fact(request: web.Request):
-    if not await check_if_user_logged_in(request):
-        raise web.HTTPFound('/login')
     session = await get_session(request)
     logger.debug(f'User:{session["username"]}, session id:{session.identity} asked for random info')
     object_description = await get_random_fact_info()
@@ -66,8 +63,6 @@ async def get_random_fact(request: web.Request):
 
 @login_required
 async def get_random_rated_fact(request: web.Request):
-    if not await check_if_user_logged_in(request):
-        raise web.HTTPFound('/login')
     session = await get_session(request)
     logger.debug(f'User:{session["username"]} session_id:{session.identity} asked for random rated fact')
     object_description, title_name = await get_random_rated_fact_info(session)
@@ -93,7 +88,6 @@ async def web_app() -> 'web.Application':
     storage = await create_redis_storage()
     add_handlers(app)
     setup(app, storage)
-    app.add_routes(app_route)
     app.on_cleanup.append(on_cleanup)
     await connect_to_db(settings.create_db_uri())
     apply_migrations(settings)

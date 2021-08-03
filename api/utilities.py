@@ -91,15 +91,6 @@ async def get_random_rated_fact_info(session: 'Session') -> tuple[str, str]:
     return object_description, rated_title.title_name
 
 
-async def check_if_user_logged_in(request: web.Request) -> bool:
-    """Check if user has logged in"""
-    session = await get_session(request)
-    if session.new:
-        session.invalidate()
-        return False
-    return True
-
-
 async def process_rating(data: dict, session: 'Session') -> tuple[str, str, dict[str]]:
     """Process rating command"""
     command = data['command']
