@@ -83,6 +83,12 @@ class SearchedObjectCategories(enum.Enum):
     HISTORY = 'Category:History'
     BIOLOGY = 'Category:Biology'
     IT = 'Category:Information and communications technology'
+    GEOGRAPHY = 'Category:Geography'
+    ECONOMICS = 'Category:Economics'
+    PHILOSOPHY = 'Category:Philosophy'
+    MATH = 'Category:Mathematics'
+    SOCIOLOGY = 'Category:Sociology'
+    JURISPRUDENCE = 'Category:Jurisprudence'
 
 
 class SearchedObjectTypes(enum.Enum):
