@@ -1,6 +1,11 @@
-from database.models import Title
+import asyncio
+import typing
+
+from database.models import Title, Category, connect_to_db
 from wiki_searcher.utilities import process_searching
-from shared.constants import SearchedObjectTypes
+from shared.project_settings import settings
+from shared.utilities import get_all_enum_values
+from shared.constants import SearchedObjectTypes, SearchedObjectCategories
 
 
 class WikiSearcher:
@@ -51,7 +56,7 @@ class WikiSearcher:
             searched_object: str,
             object_type_id: int,
             amount_of_searched_objects: int,
-    ) -> list[str]:
+    ) -> typing.Optional[list[str]]:
         """Get subcategories titles for required object and write them into db"""
         search_settings = self.main_search_settings.copy()
         search_settings.update(
@@ -64,6 +69,37 @@ class WikiSearcher:
             search_settings,
             SearchedObjectTypes.CATEGORY_MEMBERS.value,
         )
+        if not titles and not categories:
+            return None
+        tasks = []
         for title in titles:
-            await Title.create(title_name=title, title_type_id=object_type_id)
+            tasks.append(Title.create(title_name=title, title_type_id=object_type_id))
+        await asyncio.gather(*tasks)
         return categories
+
+
+async def process_titles_filling(
+        searched_categories: list[str],
+        amount_of_objects_for_level: int = 5000,
+) -> tuple:
+    await connect_to_db(settings.create_db_uri())
+    searcher = WikiSearcher(action='query', format='json')
+    tasks = []
+    for category in searched_categories:
+        just_category_name = category[9:]  # In SearchedObjectCategories wrote down as 'Category:name' so we get name
+        existing_category = await Category.get_category_by_name(just_category_name)
+        if not existing_category:
+            existing_category = await Category.create(category_name=just_category_name)
+        tasks.append(
+            searcher.get_subcategories_titles(
+                searched_object=category,
+                object_type_id=existing_category.id,
+                amount_of_searched_objects=amount_of_objects_for_level,
+            )
+        )
+    result = await asyncio.gather(*tasks)
+    return result
+
+if __name__ == '__main__':
+    categories = get_all_enum_values(SearchedObjectCategories)
+    asyncio.run(process_titles_filling(categories))
