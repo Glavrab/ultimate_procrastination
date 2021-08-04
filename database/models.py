@@ -44,7 +44,13 @@ class Category(db.Model):
     __tablename__ = 'categories'
 
     id = sa.Column(sa.Integer(), primary_key=True)
-    category_name = sa.Column(sa.String(40), unique=True, nullable=False)
+    category_name = sa.Column(sa.String(80), unique=True, nullable=False)
+
+    @classmethod
+    async def get_category_by_name(cls, category_name: str) -> typing.Optional['Category']:
+        """Get category by its name if it exist"""
+        category = await cls.query.where(cls.category_name == category_name).gino.one_or_none()
+        return category
 
 
 class Rating(db.Model):
@@ -73,7 +79,7 @@ class Title(db.Model):
 
     id = sa.Column(sa.Integer(), primary_key=True)
     title_type_id = sa.Column(sa.Integer(), sa.ForeignKey(Category.id, ondelete='CASCADE'), nullable=False)
-    title_name = sa.Column(sa.String(40), nullable=False)
+    title_name = sa.Column(sa.String(150), nullable=False)
     title_rating = sa.Column(sa.Float(), default=0, nullable=False)
     amount_of_likes = sa.Column(sa.Float(), default=0, nullable=False)
     amount_of_views = sa.Column(sa.Integer(), default=0, nullable=False)
