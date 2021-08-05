@@ -1,7 +1,9 @@
+from typing import Optional
+
 import alembic.command
 import alembic.config
 from loguru import logger
-from typing import Optional
+
 from shared.project_settings import ProjectSettings
 
 

@@ -1,11 +1,13 @@
 """DB entities"""
 import typing
-from random import randint
 from dataclasses import dataclass
-from database.utilities import get_unrated_categories
+from random import randint
+
 import sqlalchemy as sa
 from gino import Gino
 from sqlalchemy import and_
+
+from database.utilities import get_unrated_categories
 
 db = Gino()  # DB initialization
 

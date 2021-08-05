@@ -1,6 +1,8 @@
-import ujson
 import typing
+
 import aiohttp
+import ujson
+
 from shared.constants import Wiki, SearchedObjectTypes
 
 
