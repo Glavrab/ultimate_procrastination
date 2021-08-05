@@ -14,7 +14,7 @@ from aiohttp_session import (
 from aiohttp_session.redis_storage import RedisStorage
 from aioredis import create_redis_pool
 
-from database.models import User, Title, Rating, db
+from database.models import User, Title, Rating, db, CategoryRating
 from shared.constants import (
     PasswordErrorMessage,
     LoginErrorMessage,
@@ -85,8 +85,9 @@ async def get_random_fact_info() -> str:
 
 async def get_random_rated_fact_info(session: 'Session') -> tuple[str, str]:
     """Get random rated fact"""
-    topic_type_number = random.randint(0, 4)
-    rated_title = await Title.get_random_title_by_category(topic_type_number)
+    rated_categories = await User.get_users_top_categories_id(5, session['user_id'])
+    random_category_id = _process_random_category_choosing(categories=rated_categories)
+    rated_title = await Title.get_random_title_by_category(random_category_id)
     session['last_rated_topic_id'] = rated_title.id
     searcher = WikiSearcher(action='query', format='json')
     object_description = await searcher.get_object_wiki_info(rated_title.title_name)
@@ -175,6 +176,25 @@ def json_required(handler: typing.Callable[[web.Request], typing.Awaitable[web.R
 def create_json_response(data: dict[typing.Union[str, int]]) -> web.Response:
     """Json response using ujson.dumps"""
     return web.json_response(data, dumps=ujson.dumps)
+
+
+def _process_random_category_choosing(categories: list['CategoryRating']) -> int:
+    """Get random category id based on avg category rating"""
+    amount_of_categories = len(categories)
+    summary_rating = 0
+    result = []
+    for category in categories:
+        summary_rating += category.rating_number
+    try:
+        avg_rating = amount_of_categories / summary_rating
+    except ZeroDivisionError:
+        avg_rating = 0
+    for category in categories:
+        if category.rating_number >= avg_rating:
+            result.append(category.category_id)
+            result.append(category.category_id)
+        result.append(category.category_id)
+    return result[random.randint(0, len(result))]
 
 
 def _hash_password(password: str) -> str:

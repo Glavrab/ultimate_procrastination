@@ -1,7 +1,7 @@
 import alembic.command
 import alembic.config
 from loguru import logger
-
+from typing import Optional
 from shared.project_settings import ProjectSettings
 
 
@@ -17,3 +17,21 @@ def apply_migrations(settings: ProjectSettings):
     alembic.command.upgrade(alembic_config, settings.apply_migration)
     logger.info('finishing applying migrations')
 
+
+def get_unrated_categories(
+        rated_categories_ids: list[Optional[int]],
+        all_available_categories_ids: list[int],
+        amount_of_categories: int
+) -> list[int]:
+    """Get all unrated categories"""
+    result = []
+    if not rated_categories_ids:
+        return all_available_categories_ids[amount_of_categories:]
+    while amount_of_categories > 0:
+        for rated_category, category in rated_categories_ids, all_available_categories_ids:
+            if rated_category == category:
+                pass
+            else:
+                amount_of_categories -= 1
+                result.append(category)
+    return result

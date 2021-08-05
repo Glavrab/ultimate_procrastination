@@ -1,7 +1,8 @@
 """DB entities"""
 import typing
 from random import randint
-
+from dataclasses import dataclass
+from database.utilities import get_unrated_categories
 import sqlalchemy as sa
 from gino import Gino
 from sqlalchemy import and_
@@ -11,6 +12,12 @@ db = Gino()  # DB initialization
 
 async def connect_to_db(uri: str):
     await db.set_bind(uri)
+
+
+@dataclass
+class CategoryRating:
+    category_id: int
+    rating_number: int
 
 
 class User(db.Model):
@@ -23,6 +30,32 @@ class User(db.Model):
     email = sa.Column(sa.String(30), nullable=False, unique=True)
 
     @classmethod
+    async def get_users_top_categories_id(cls, amount_of_categories: int, user_id: int) -> list['CategoryRating']:
+        """Get users top categories"""
+        result: list[CategoryRating] = []
+        rated_categories = await db.select(
+            [Rating.category_type_id, Rating.rating_number]
+        ).select_from(
+            cls.join(Rating)
+        ).gino.query.where(
+            and_(
+                Rating.rating_number >= 0,
+                cls.id == user_id,
+            )
+        ).gino.all()
+        if len(rated_categories) < amount_of_categories:
+            unrated_categories = get_unrated_categories(
+                rated_categories,
+                await Category.get_all_available_categories_ids(),
+                amount_of_categories - len(rated_categories),
+            )
+            for unrated_category in unrated_categories:
+                rated_categories.append((unrated_category, 0))
+        for (category_id, category_rating) in rated_categories:
+            result.append(CategoryRating(category_id, category_rating))
+        return result
+
+    @classmethod
     async def get_user_by_username(cls, username: str) -> typing.Optional['User']:
         """Get user from db by username"""
         user = await cls.query.where(User.username == username).gino.one_or_none()
@@ -30,6 +63,7 @@ class User(db.Model):
 
     @classmethod
     async def get_user_by_email(cls, email: str) -> typing.Optional['User']:
+        """Get user from db by email"""
         user = await cls.query.where(User.email == email).gino.one_or_none()
         return user
 
@@ -51,6 +85,15 @@ class Category(db.Model):
         """Get category by its name if it exist"""
         category = await cls.query.where(cls.category_name == category_name).gino.one_or_none()
         return category
+
+    @classmethod
+    async def get_all_available_categories_ids(cls) -> list[int]:
+        """Get list with all available categories in db"""
+        result = []
+        categories = await cls.select('id').gino.all()
+        for data in categories:
+            result.append(data[0])
+        return result
 
 
 class Rating(db.Model):
@@ -87,17 +130,21 @@ class Title(db.Model):
     @classmethod
     async def get_amount_of_titles_by_type(cls, title_type: int) -> int:
         """Get all amount of titles by its category"""
-        amount_of_titles = cls.select().where(cls.title_type_id == title_type).count().gino.scalar()
+        amount_of_titles = await cls.select().where(cls.title_type_id == title_type).count().gino.scalar()
         return amount_of_titles
+
+    @classmethod
+    async def get_all_titles_id_by_category(cls, title_type: int) -> list[int]:
+        """Get all title ids for one category"""
+        result = []
+        raw_result = await cls.select('id').where(cls.title_type_id == title_type).gino.all()
+        for data in raw_result:
+            result.append(data[0])
+        return result
 
     @classmethod
     async def get_random_title_by_category(cls, title_type: int) -> 'Title':
         """Get one title by its category"""
-        amount_of_titles = await cls.get_amount_of_titles_by_type(title_type)
-        title = await cls.select().where(
-            and_(
-                cls.title_type_id == title_type,
-                cls.id == randint(0, amount_of_titles),
-            ),
-        ).gino.first()
+        title_ids = await cls.get_all_titles_id_by_category(title_type)
+        title = await cls.get(title_ids[randint(0, len(title_ids))])
         return title
