@@ -164,10 +164,9 @@ def json_required(handler: typing.Callable[[web.Request], typing.Awaitable[web.R
 
     @wraps(handler)
     async def wrapper(request: web.Request) -> web.Response:
-        try:
-            return await handler(request)
-        except ValueError:
+        if 'Content-type' not in request.headers or request.headers['Content-type'] != 'application/json':
             raise web.HTTPBadRequest(text='Incorrect request content')
+        return await handler(request)
 
     return wrapper
 
