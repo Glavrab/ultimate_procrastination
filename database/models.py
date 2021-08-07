@@ -148,5 +148,5 @@ class Title(db.Model):
     async def get_random_title_by_category(cls, title_type: int) -> 'Title':
         """Get one title by its category"""
         title_ids = await cls.get_all_titles_id_by_category(title_type)
-        title = await cls.get(title_ids[randint(0, len(title_ids))])
+        title = await cls.get(title_ids[randint(0, len(title_ids)-1)])
         return title
