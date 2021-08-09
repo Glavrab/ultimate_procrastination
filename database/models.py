@@ -44,6 +44,8 @@ class User(db.Model):
                 Rating.rating_number >= 0,
                 cls.id == user_id,
             )
+        ).order_by(
+            Rating.rating_number
         ).gino.all()
         if len(rated_categories) < amount_of_categories:
             unrated_categories = get_unrated_categories(
@@ -53,8 +55,9 @@ class User(db.Model):
             )
             for unrated_category in unrated_categories:
                 rated_categories.append((unrated_category, 0))
-        for (category_id, category_rating) in rated_categories:
-            result.append(CategoryRating(category_id, category_rating))
+        while len(result) < amount_of_categories:
+            for (category_id, category_rating) in rated_categories:
+                result.append(CategoryRating(category_id, category_rating))
         return result
 
     @classmethod
