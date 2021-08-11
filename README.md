@@ -8,7 +8,7 @@
     * [Web service](#web-service)
 * [Deploy](#deploy)
     * [Build](#build)
-    * [Project's settings](#project's settings)
+    * [Project's settings](#projects-settings)
     
 ## About
 
@@ -53,7 +53,7 @@ You need to have docker and docker-compose installed.
 6. To fill db with titles run searcher.py 
 
 ```shell script
-$ mkdir "ultimate_procrastination"
+$ mkdir ultimate_procrastination
 $ cd ultimate_procrastination
 $ git clone https://github.com/Glavrab/ultimate_procrastination
 $ vim .env
