@@ -27,7 +27,7 @@ aiogram(as Telegram Bot), Redis(for storing session data), Docker.
 
 ### How it works
 
-![Current scheme](/home/aleksey/PycharmProjects/ultimate_procrastination/docs/working_scheme.png)
+![Current scheme](https://github.com/Glavrab/ultimate_procrastination/blob/web_app%2Bbot/docs/working_scheme.png?raw=true)
 ### Telegram Bot
 
 Telegram bot is written using aiogram. Currently, receiving update object from telegram using long pooling.
