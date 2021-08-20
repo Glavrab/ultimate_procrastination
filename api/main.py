@@ -64,9 +64,10 @@ async def get_random_fact(request: web.Request):
 
 @login_required
 async def get_random_rated_fact(request: web.Request):
+    search_type = request.match_info['search_type']
     session = await get_session(request)
     logger.debug(f'User:{session["username"]} session_id:{session.identity} asked for random rated fact')
-    object_description, title_name = await get_random_rated_fact_info(session)
+    object_description, title_name = await get_random_rated_fact_info(session, search_type)
     response = {'random_rated_fact': object_description, 'title_name': title_name}
     return create_json_response(response)
 
@@ -111,6 +112,6 @@ def add_handlers(app: web.Application):
             web.post('/rate_fact', rate_fact),
             web.post('/login', login),
             web.get('/random_fact', get_random_fact),
-            web.get('/random_rated_fact', get_random_rated_fact),
+            web.get('/random_rated_fact/{search_type}', get_random_rated_fact),
         ]
     )

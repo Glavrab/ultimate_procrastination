@@ -7,6 +7,12 @@ PASSWORD_COMPOUNDS_REQUIREMENTS_PATTERN = re.compile('^[a-zA-Z0-9$@]')
 LOGIN_COMPOUNDS_REQUIREMENTS_PATTERN = re.compile('^[a-zA-Z0-9$@].{4,20}$')
 
 
+class SearchType(enum.Enum):
+    """Required path to access correct fact choosing"""
+    NEW_FACTS = 'new'
+    TOP_FACTS = 'top'
+
+
 class RequiredData(enum.Enum):
     """Required data to process request"""
     USERNAME = 'username'
