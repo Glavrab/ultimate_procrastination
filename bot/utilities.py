@@ -85,6 +85,7 @@ async def process_authorization_error_scenario(
 
 
 async def show_login_menu(bot: Bot, chat_id: int):
+    """Process showing login menu"""
     await bot.send_message(
         chat_id,
         'Welcome to yours procrastination supporter, have you already registered?',
