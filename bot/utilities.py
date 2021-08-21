@@ -65,12 +65,20 @@ async def get_random_rated_fact(state: FSMContext, search_type: str) -> tuple[st
     return result['random_rated_fact'], result['title_name']
 
 
-async def process_authorization_error_scenario(message: types.Message, response: dict[str], process_type: str):
+async def process_authorization_error_scenario(
+        message: types.Message,
+        response: Union[dict[str], str],
+        process_type: str,
+):
     """Process authorization errors"""
-    logger.debug(f'Unsuccessful authorization by user: {message.from_user.id} error:{response["error"]}')
+    if isinstance(response, dict):
+        error = response['error']
+    else:
+        error = response
+    logger.debug(f'Unsuccessful authorization by user: {message.from_user.id} error:{error}')
     await message.answer(
-        response['error'] + ' ' + f' Get back to the login page or start {process_type}'
-                                  f' process again by typing your username again',
+        error + ' ' + f' Get back to the login page or start {process_type}'
+                      f'process again by typing your username again',
         reply_markup=create_inline_keyboard([CurrentTask.LOGIN_PAGE.value]),
     )
     await AuthorizationForm.username.set()
@@ -90,13 +98,42 @@ async def show_login_menu(bot: Bot, chat_id: int):
     )
 
 
-async def register_user(user_info: dict[str]) -> dict[str]:
+async def process_successful_authorization(message: types.Message, authorization_type: str):
+    """Process successful authorization"""
+    await message.answer(
+        f'Successful {authorization_type}', reply_markup=create_inline_keyboard(
+            [
+                'Get random fact',
+                'Try something new',
+                CurrentTask.LOGIN_PAGE.value,
+            ],
+            callback_queries=
+            (
+                CurrentTask.GET_TOP_FACT.value,
+                CurrentTask.GET_NEW_FACT.value,
+                CurrentTask.LOGIN_PAGE.value
+            )
+        ),
+    )
+    await MainForm.work_process.set()
+
+
+async def register_user(user_info: dict[str]) -> tuple[Union[dict[str], str], bool]:
     """Process Http request to api to register user"""
     session = ClientSession(json_serialize=ujson.dumps)
     async with session.post(URL.REGISTER.value, json=user_info) as response:
+        content_type = response.content_type
+        if content_type != ContentType.JSON.value:
+            successful = False
+            error_text = await response.text()
+            return error_text, successful
         result = await response.json(loads=ujson.loads)
         await session.close()
-    return result
+    if 'result' in result.keys() and result['result'] == 500:
+        successful = True
+        return result, successful
+    successful = False
+    return result, successful
 
 
 async def login_user(user_info: dict[str], state: FSMContext) -> tuple[dict[str], bool]:
@@ -105,7 +142,7 @@ async def login_user(user_info: dict[str], state: FSMContext) -> tuple[dict[str]
     async with session.post(URL.LOGIN.value, json=user_info) as response:
         result = await response.json(loads=ujson.loads)
         await session.close()
-    if 'PROCRASTINATION_SESSION' in result.keys():
+    if 'result' in result.keys() and result['result'] == 500:
         successful = True
         async with state.proxy() as data:
             data['session_key'] = response.cookies['PROCRASTINATION_SESSION']
