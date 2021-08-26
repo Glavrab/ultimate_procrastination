@@ -43,23 +43,39 @@ async def create_redis_storage():
     return storage
 
 
-async def register_user(data: dict[str]) -> dict[str]:
+async def register_user(data: dict[str], request: web.Request) -> dict[str]:
     """Register user"""
     await _check_if_data_correct(data)
     hashed_password = _hash_password(data['password'])
+    token = send_confirmation_url(data['email'])
     if RequiredData.TELEGRAM_ID.value in data.keys():
-        await User.create(
+        user = await User.create(
             username=data['username'],
             password=hashed_password,
             telegram_id=data['telegram_id'],
-            email=data['email']
+            email=data['email'],
         )
     else:
-        await User.create(
+        user = await User.create(
             username=data['username'],
             password=hashed_password,
-            email=data['email']
+            email=data['email'],
         )
+    session = await new_session(request)
+    session['user_id'], session['token'] = user.id, token
+    return {'result': Codes.SUCCESS.value}
+
+
+async def process_email_confirmation(request: web.Request):
+    """Process users email confirmation"""
+    token = request.match_info['token']
+    session = await get_session(request)
+    required_token, user_id = session['token'], session['user_id']
+    if token != required_token:
+        raise web.HTTPBadRequest(text='Incorrect token')
+    user = await User.get(user_id)
+    await user.update(email_confirmed=True).apply()
+    session['status'] = Codes.AUTHORIZED.value
     return {'result': Codes.SUCCESS.value}
 
 
@@ -73,6 +89,34 @@ async def login_user(data: dict[str], request: web.Request) -> typing.Optional[d
             session['username'], session['user_id'] = username, user.id
             return {'result': Codes.SUCCESS.value}
     raise LoginError(LoginErrorMessage.INCORRECT_DATA.value)
+
+
+def send_confirmation_url(users_email: str) -> str:
+    """Send confirmation url to user's email"""
+    token = ''.join(random.choice(string.digits + string.ascii_letters) for _ in range(10))
+    message = MIMEText(
+        EmailMessage.CONFIRMATION.value + URL.EMAIL_CONFIRMATION.value + token,
+        'plain'
+    )
+    message['Subject'], message['From'], message['To'] = 'Email confirmation', \
+                                                         settings.service_account_name, \
+                                                         users_email
+    with smtplib.SMTP_SSL(host=settings.smtp_server, context=ssl.create_default_context(), port=465) as server:
+        server.login(settings.service_account_name, settings.service_account_password)
+        server.helo()
+        server.mail(settings.service_account_name)
+        code, name = server.rcpt(users_email)
+        print(code, name)
+        if code != 250:  # Means that email is not valid
+            server.quit()
+            raise EmailError(EmailErrorMessage.INCORRECT_EMAIL.value)
+        server.sendmail(
+            msg=message.as_string(),
+            from_addr=settings.service_account_name,
+            to_addrs=users_email,
+        )
+        server.quit()
+    return token
 
 
 async def get_random_fact_info() -> str:
