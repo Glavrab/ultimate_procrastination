@@ -30,6 +30,7 @@ class User(db.Model):
     password = sa.Column(sa.String(150), nullable=False)
     telegram_id = sa.Column(sa.Integer(), nullable=True, unique=True)
     email = sa.Column(sa.String(30), nullable=False, unique=True)
+    email_confirmed = sa.Column(sa.Boolean(), nullable=True, default=False)
 
     @classmethod
     async def get_users_top_categories_id(cls, amount_of_categories: int, user_id: int) -> list['CategoryRating']:
