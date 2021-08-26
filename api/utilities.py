@@ -192,9 +192,12 @@ def check_for_required_info_for_login(data: dict[str]):
 
 
 def check_for_required_info_for_registration(data: dict[str]):
-    if RequiredData.EMAIL.value not in data.keys() or RequiredData.USERNAME.value not in data.keys() \
-            or RequiredData.PASSWORD.value not in data.keys() \
-            or RequiredData.REPEATED_PASSWORD.value not in data.keys():
+    if (
+            RequiredData.EMAIL.value not in data.keys()
+            or RequiredData.USERNAME.value not in data.keys()
+            or RequiredData.PASSWORD.value not in data.keys()
+            or RequiredData.REPEATED_PASSWORD.value not in data.keys()
+    ):
         raise web.HTTPBadRequest(text='Incorrect data')
 
 
