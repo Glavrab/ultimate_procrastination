@@ -12,7 +12,7 @@
     
 ## About
 
-It is a system to provide support for your procrastination and as a bonus increasing your intelligence level!
+It is a system to provide support for your procrastination and as a bonus to increase your intelligence level!
 When you don't know what to do, or you know but don't want to bother yourself with necessary task this service will help you out!
 Giving you literally infinite amount of unimportant but interesting facts.
 After small registration you can configure your own feed and receive the information about categories you prefer most.
@@ -55,7 +55,7 @@ You need to have docker and docker-compose installed.
 ```shell script
 $ mkdir ultimate_procrastination
 $ cd ultimate_procrastination
-$ git clone https://github.com/Glavrab/ultimate_procrastination
+$ git clone https://github.com/Glavrab/ultimate_procrastination .
 $ vim .env
 $ vim config.json
 $ docker-compose build
@@ -110,4 +110,4 @@ In the future, we will use some service to be more secure.
 ## Developers
 
 Project is initially developed and maintained by [Alexey Baranov](https://github.com/Glavrab).
-Reviewed by [Dennis Dobrovolsky](https://github.com/AngliD).
+Reviewed by [Dennis Dobrovolsky](https://github.com/MrBanja).
