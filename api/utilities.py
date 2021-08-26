@@ -140,12 +140,12 @@ async def _check_if_data_correct(data: dict[str]):
         raise LoginError(LoginErrorMessage.USER_ALREADY_EXIST.value)
     if password != data['repeated_password']:
         raise PasswordError(PasswordErrorMessage.UNMATCHED_PASSWORD.value)
-    elif not re.search(PASSWORD_SYMBOLS_REQUIREMENTS_PATTERN, password) or not re.match(
-            PASSWORD_COMPOUNDS_REQUIREMENTS_PATTERN,
-            password,
+    elif (
+            not PASSWORD_SYMBOLS_REQUIREMENTS_PATTERN.search(password)
+            or not PASSWORD_COMPOUNDS_REQUIREMENTS_PATTERN.match(password)
     ):
         raise PasswordError(PasswordErrorMessage.INELIGIBLE_PASSWORD.value)
-    elif not re.match(LOGIN_COMPOUNDS_REQUIREMENTS_PATTERN, data['username']):
+    elif not LOGIN_COMPOUNDS_REQUIREMENTS_PATTERN.match(data['username']):
         raise LoginError(LoginErrorMessage.INELIGIBLE_LOGIN.value)
 
 
