@@ -1,8 +1,10 @@
 import random
 import re
+import string
 import typing
 from functools import wraps
-
+import smtplib
+import ssl
 import bcrypt
 import ujson
 from aiohttp import web
@@ -13,7 +15,7 @@ from aiohttp_session import (
 )
 from aiohttp_session.redis_storage import RedisStorage
 from aioredis import create_redis_pool
-
+from email.mime.text import MIMEText
 from database.models import User, Title, Rating, db, CategoryRating
 from shared.constants import (
     PasswordErrorMessage,
@@ -24,8 +26,12 @@ from shared.constants import (
     PASSWORD_COMPOUNDS_REQUIREMENTS_PATTERN,
     LOGIN_COMPOUNDS_REQUIREMENTS_PATTERN,
     PASSWORD_SYMBOLS_REQUIREMENTS_PATTERN,
+    EMAIL_COMPOUNDS_REQUIREMENTS_PATTERN,
+    URL,
+    EmailMessage,
+    EmailErrorMessage,
 )
-from shared.exceptions import PasswordError, LoginError
+from shared.exceptions import PasswordError, LoginError, EmailError
 from shared.project_settings import settings
 from shared.utilities import get_all_enum_values
 from wiki_searcher.searcher import WikiSearcher
@@ -84,9 +90,12 @@ async def login_user(data: dict[str], request: web.Request) -> typing.Optional[d
     username = data['username']
     user = await User.get_user_by_username(username)
     if user:
-        if bcrypt.checkpw(data['password'].encode('utf-8'), bytes(user.password, encoding='utf8')):
+        if bcrypt.checkpw(
+                data['password'].encode('utf-8'),
+                bytes(user.password, encoding='utf8')
+        ) and user.email_confirmed:
             session: 'Session' = await new_session(request)
-            session['username'], session['user_id'] = username, user.id
+            session['username'], session['user_id'], session['status'] = username, user.id, Codes.AUTHORIZED.value
             return {'result': Codes.SUCCESS.value}
     raise LoginError(LoginErrorMessage.INCORRECT_DATA.value)
 
@@ -196,9 +205,9 @@ def login_required(handler: typing.Callable[[web.Request], typing.Awaitable[web.
     @wraps(handler)
     async def wrapper(request: web.Request) -> web.Response:
         session = await get_session(request)
-        if session.new:
+        if session.new or 'status' not in session.keys():
             session.invalidate()
-            raise web.HTTPUnauthorized(text='Requires authorization')
+            raise web.HTTPUnauthorized(text='Requires authorization or email not confirmed')
         return await handler(request)
 
     return wrapper
