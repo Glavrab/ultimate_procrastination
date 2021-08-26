@@ -74,7 +74,9 @@ POSTGRES_PASSWORD="POSTGRES_PASSWORD123"
 REDIS_PASSWORD="REDIS_PASSWORD123"
 ```
 
-`config.json` file composition.
+`config.json` file composition. Since it's not even MVP we use gmail smtp server without oauth2 just with password
+and account name. In order to use it you have to [allow less secure apps.](https://myaccount.google.com/lesssecureapps)
+In the future, we will use some service to be more secure.
 
 1. telegram_token
 2. apply_migration
@@ -85,6 +87,9 @@ REDIS_PASSWORD="REDIS_PASSWORD123"
 7. pg_db
 8. debug_status
 9. redis_password
+10. smtp_server
+11. service_account_name
+12. service_account_password
 
 ```json
 {
@@ -96,7 +101,10 @@ REDIS_PASSWORD="REDIS_PASSWORD123"
   "pg_port": 5432,
   "pg_db": "ultimate_procrastination",
   "debug_status": "True",
-  "redis_password": "REDIS_PASSWORD123"
+  "redis_password": "REDIS_PASSWORD123",
+  "smtp_server": "smtp.gmail.com",
+  "service_account_name": "service@gmail.com",
+  "service_account_password": "secret_password1234"
 }
 ```
 ## Developers
