@@ -115,7 +115,6 @@ def send_confirmation_url(users_email: str) -> str:
         server.helo()
         server.mail(settings.service_account_name)
         code, name = server.rcpt(users_email)
-        print(code, name)
         if code != 250:  # Means that email is not valid
             server.quit()
             raise EmailError(EmailErrorMessage.INCORRECT_EMAIL.value)
