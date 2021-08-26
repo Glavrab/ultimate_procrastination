@@ -110,18 +110,22 @@ async def process_rating(data: dict, session: 'Session') -> tuple[str, str, dict
         total_amount_of_likes = amount_of_likes + 1
         title_rating = total_amount_of_likes / total_amount_of_views
         async with db.transaction() as transaction:
-            await db.status(f'UPDATE ratings SET rating_number=rating_number+1 WHERE id={theme_rating.id}')
-            await db.status(f'UPDATE titles SET title_rating={title_rating}, '
-                            f'amount_of_likes=amount_of_likes+1, '
-                            f'amount_of_views={total_amount_of_views} WHERE id={title_id}')
+            await theme_rating.update(rating_number=theme_rating.rating_number + 1).apply()
+            await rated_title.update(
+                amount_of_likes=amount_of_likes + 1,
+                amount_of_views=total_amount_of_views,
+                title_rating=title_rating,
+            ).apply()
     elif command == RateCommand.DISLIKE.value:
         total_amount_of_likes = amount_of_likes - 1
         title_rating = total_amount_of_likes / total_amount_of_views
         async with db.transaction() as transaction:
-            await db.status(f'UPDATE ratings SET rating_number=rating_number-1 WHERE id={theme_rating.id}')
-            await db.status(f'UPDATE titles SET title_rating={title_rating}, '
-                        f'amount_of_likes={total_amount_of_likes}, '
-                        f'amount_of_views={total_amount_of_views} WHERE id={title_id}')
+            await theme_rating.update(rating_number=theme_rating.rating_number - 1).apply()
+            await rated_title.update(
+                amount_of_likes=amount_of_likes - 1,
+                amount_of_views=total_amount_of_views,
+                title_rating=title_rating
+            ).apply()
 
     result = {"result": Codes.SUCCESS.value}
     return session['username'], command, result
