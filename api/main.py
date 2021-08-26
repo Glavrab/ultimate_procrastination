@@ -54,7 +54,7 @@ async def login(request: web.Request) -> web.Response:
 
 
 @login_required
-async def get_random_fact(request: web.Request):
+async def get_random_fact(request: web.Request) -> web.Response:
     session = await get_session(request)
     logger.debug(f'User:{session["username"]}, session id:{session.identity} asked for random info')
     object_description = await get_random_fact_info()
