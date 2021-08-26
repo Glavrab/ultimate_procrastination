@@ -188,7 +188,7 @@ async def _check_if_data_correct(data: dict[str]):
     user_by_email = await User.get_user_by_email(data['email'])
     if user_by_username or user_by_email:
         raise LoginError(LoginErrorMessage.USER_ALREADY_EXIST.value)
-    if password != data['repeated_password']:
+    elif password != data['repeated_password']:
         raise PasswordError(PasswordErrorMessage.UNMATCHED_PASSWORD.value)
     elif not re.search(PASSWORD_SYMBOLS_REQUIREMENTS_PATTERN, password) or not re.match(
             PASSWORD_COMPOUNDS_REQUIREMENTS_PATTERN,
@@ -197,6 +197,8 @@ async def _check_if_data_correct(data: dict[str]):
         raise PasswordError(PasswordErrorMessage.INELIGIBLE_PASSWORD.value)
     elif not re.match(LOGIN_COMPOUNDS_REQUIREMENTS_PATTERN, data['username']):
         raise LoginError(LoginErrorMessage.INELIGIBLE_LOGIN.value)
+    elif not re.match(EMAIL_COMPOUNDS_REQUIREMENTS_PATTERN, data['email']):
+        raise EmailError(EmailErrorMessage.INCORRECT_EMAIL.value)
 
 
 def login_required(handler: typing.Callable[[web.Request], typing.Awaitable[web.Response]]):
