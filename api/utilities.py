@@ -118,18 +118,22 @@ async def process_rating(data: dict, session: 'Session') -> tuple[str, str, dict
         total_amount_of_likes = amount_of_likes + 1
         title_rating = total_amount_of_likes / total_amount_of_views
         async with db.transaction() as transaction:
-            await db.status(f'UPDATE ratings SET rating_number=rating_number+1 WHERE id={theme_rating.id}')
-            await db.status(f'UPDATE titles SET title_rating={title_rating}, '
-                            f'amount_of_likes=amount_of_likes+1, '
-                            f'amount_of_views={total_amount_of_views} WHERE id={title_id}')
+            await theme_rating.update(rating_number=theme_rating.rating_number + 1).apply()
+            await rated_title.update(
+                amount_of_likes=amount_of_likes + 1,
+                amount_of_views=total_amount_of_views,
+                title_rating=title_rating,
+            ).apply()
     elif command == RateCommand.DISLIKE.value:
         total_amount_of_likes = amount_of_likes - 1
         title_rating = total_amount_of_likes / total_amount_of_views
         async with db.transaction() as transaction:
-            await db.status(f'UPDATE ratings SET rating_number=rating_number-1 WHERE id={theme_rating.id}')
-            await db.status(f'UPDATE titles SET title_rating={title_rating}, '
-                        f'amount_of_likes={total_amount_of_likes}, '
-                        f'amount_of_views={total_amount_of_views} WHERE id={title_id}')
+            await theme_rating.update(rating_number=theme_rating.rating_number - 1).apply()
+            await rated_title.update(
+                amount_of_likes=amount_of_likes - 1,
+                amount_of_views=total_amount_of_views,
+                title_rating=title_rating
+            ).apply()
 
     result = {"result": Codes.SUCCESS.value}
     return session['username'], command, result
@@ -138,18 +142,17 @@ async def process_rating(data: dict, session: 'Session') -> tuple[str, str, dict
 async def _check_if_data_correct(data: dict[str]):
     """Check if data is ok with the requirements"""
     password = data['password']
-    user_by_username = await User.get_user_by_username(data['username'])
-    user_by_email = await User.get_user_by_email(data['email'])
-    if user_by_username or user_by_email:
+    user_exist = await User.check_if_user_already_exist(data['username'], data['email'])
+    if user_exist:
         raise LoginError(LoginErrorMessage.USER_ALREADY_EXIST.value)
     if password != data['repeated_password']:
         raise PasswordError(PasswordErrorMessage.UNMATCHED_PASSWORD.value)
-    elif not re.search(PASSWORD_SYMBOLS_REQUIREMENTS_PATTERN, password) or not re.match(
-            PASSWORD_COMPOUNDS_REQUIREMENTS_PATTERN,
-            password,
+    elif (
+            not PASSWORD_SYMBOLS_REQUIREMENTS_PATTERN.search(password)
+            or not PASSWORD_COMPOUNDS_REQUIREMENTS_PATTERN.match(password)
     ):
         raise PasswordError(PasswordErrorMessage.INELIGIBLE_PASSWORD.value)
-    elif not re.match(LOGIN_COMPOUNDS_REQUIREMENTS_PATTERN, data['username']):
+    elif not LOGIN_COMPOUNDS_REQUIREMENTS_PATTERN.match(data['username']):
         raise LoginError(LoginErrorMessage.INELIGIBLE_LOGIN.value)
 
 
@@ -172,10 +175,13 @@ def json_required(handler: typing.Callable[[web.Request], typing.Awaitable[web.R
 
     @wraps(handler)
     async def wrapper(request: web.Request) -> web.Response:
+        if 'Content-type' not in request.headers or request.headers['Content-type'] != 'application/json':
+            raise web.HTTPBadRequest(text='Incorrect request content')
         try:
-            return await handler(request)
+            await request.json(loads=ujson.loads)
         except ValueError:
             raise web.HTTPBadRequest(text='Incorrect request content')
+        return await handler(request)
 
     return wrapper
 
@@ -216,9 +222,12 @@ def check_for_required_info_for_login(data: dict[str]):
 
 
 def check_for_required_info_for_registration(data: dict[str]):
-    if RequiredData.EMAIL.value not in data.keys() or RequiredData.USERNAME.value not in data.keys() \
-            or RequiredData.PASSWORD.value not in data.keys() \
-            or RequiredData.REPEATED_PASSWORD.value not in data.keys():
+    if (
+            RequiredData.EMAIL.value not in data.keys()
+            or RequiredData.USERNAME.value not in data.keys()
+            or RequiredData.PASSWORD.value not in data.keys()
+            or RequiredData.REPEATED_PASSWORD.value not in data.keys()
+    ):
         raise web.HTTPBadRequest(text='Incorrect data')
 
 
