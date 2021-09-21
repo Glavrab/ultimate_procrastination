@@ -18,3 +18,7 @@ class LoginError(ProcrastinationError):
 
 class AuthorizationError(ProcrastinationError):
     pass
+
+
+class EmailError(ProcrastinationError):
+    pass

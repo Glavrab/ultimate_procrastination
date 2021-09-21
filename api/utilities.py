@@ -1,8 +1,10 @@
 import random
 import re
+import string
 import typing
 from functools import wraps
-
+import smtplib
+import ssl
 import bcrypt
 import ujson
 from aiohttp import web
@@ -13,8 +15,8 @@ from aiohttp_session import (
 )
 from aiohttp_session.redis_storage import RedisStorage
 from aioredis import create_redis_pool
-
-from database.models import User, Title, Rating, db
+from email.mime.text import MIMEText
+from database.models import User, Title, Rating, db, CategoryRating
 from shared.constants import (
     PasswordErrorMessage,
     LoginErrorMessage,
@@ -24,8 +26,12 @@ from shared.constants import (
     PASSWORD_COMPOUNDS_REQUIREMENTS_PATTERN,
     LOGIN_COMPOUNDS_REQUIREMENTS_PATTERN,
     PASSWORD_SYMBOLS_REQUIREMENTS_PATTERN,
+    EMAIL_COMPOUNDS_REQUIREMENTS_PATTERN,
+    URL,
+    EmailMessage,
+    EmailErrorMessage,
 )
-from shared.exceptions import PasswordError, LoginError
+from shared.exceptions import PasswordError, LoginError, EmailError
 from shared.project_settings import settings
 from shared.utilities import get_all_enum_values
 from wiki_searcher.searcher import WikiSearcher
@@ -43,23 +49,39 @@ async def create_redis_storage():
     return storage
 
 
-async def register_user(data: dict[str]) -> dict[str]:
+async def register_user(data: dict[str], request: web.Request) -> dict[str]:
     """Register user"""
     await _check_if_data_correct(data)
     hashed_password = _hash_password(data['password'])
+    token = send_confirmation_url(data['email'])
     if RequiredData.TELEGRAM_ID.value in data.keys():
-        await User.create(
+        user = await User.create(
             username=data['username'],
             password=hashed_password,
             telegram_id=data['telegram_id'],
-            email=data['email']
+            email=data['email'],
         )
     else:
-        await User.create(
+        user = await User.create(
             username=data['username'],
             password=hashed_password,
-            email=data['email']
+            email=data['email'],
         )
+    session = await new_session(request)
+    session['user_id'], session['token'] = user.id, token
+    return {'result': Codes.SUCCESS.value}
+
+
+async def process_email_confirmation(request: web.Request):
+    """Process users email confirmation"""
+    token = request.match_info['token']
+    session = await get_session(request)
+    required_token, user_id = session['token'], session['user_id']
+    if token != required_token:
+        raise web.HTTPBadRequest(text='Incorrect token')
+    user = await User.get(user_id)
+    await user.update(email_confirmed=True).apply()
+    session['status'] = Codes.AUTHORIZED.value
     return {'result': Codes.SUCCESS.value}
 
 
@@ -68,11 +90,41 @@ async def login_user(data: dict[str], request: web.Request) -> typing.Optional[d
     username = data['username']
     user = await User.get_user_by_username(username)
     if user:
-        if bcrypt.checkpw(data['password'].encode('utf-8'), bytes(user.password, encoding='utf8')):
+        if bcrypt.checkpw(
+                data['password'].encode('utf-8'),
+                bytes(user.password, encoding='utf8')
+        ) and user.email_confirmed:
             session: 'Session' = await new_session(request)
-            session['username'], session['user_id'] = username, user.id
+            session['username'], session['user_id'], session['status'] = username, user.id, Codes.AUTHORIZED.value
             return {'result': Codes.SUCCESS.value}
     raise LoginError(LoginErrorMessage.INCORRECT_DATA.value)
+
+
+def send_confirmation_url(users_email: str) -> str:
+    """Send confirmation url to user's email"""
+    token = ''.join(random.choice(string.digits + string.ascii_letters) for _ in range(10))
+    message = MIMEText(
+        EmailMessage.CONFIRMATION.value + URL.EMAIL_CONFIRMATION.value + token,
+        'plain'
+    )
+    message['Subject'], message['From'], message['To'] = 'Email confirmation', \
+                                                         settings.service_account_name, \
+                                                         users_email
+    with smtplib.SMTP_SSL(host=settings.smtp_server, context=ssl.create_default_context(), port=465) as server:
+        server.login(settings.service_account_name, settings.service_account_password)
+        server.helo()
+        server.mail(settings.service_account_name)
+        code, name = server.rcpt(users_email)
+        if code != 250:  # Means that email is not valid
+            server.quit()
+            raise EmailError(EmailErrorMessage.INCORRECT_EMAIL.value)
+        server.sendmail(
+            msg=message.as_string(),
+            from_addr=settings.service_account_name,
+            to_addrs=users_email,
+        )
+        server.quit()
+    return token
 
 
 async def get_random_fact_info() -> str:
@@ -85,8 +137,9 @@ async def get_random_fact_info() -> str:
 
 async def get_random_rated_fact_info(session: 'Session') -> tuple[str, str]:
     """Get random rated fact"""
-    topic_type_number = random.randint(0, 4)
-    rated_title = await Title.get_random_title_by_category(topic_type_number)
+    rated_categories = await User.get_users_top_categories_id(5, session['user_id'])
+    random_category_id = _process_random_category_choosing(categories=rated_categories)
+    rated_title = await Title.get_random_title_by_category(random_category_id)
     session['last_rated_topic_id'] = rated_title.id
     searcher = WikiSearcher(action='query', format='json')
     object_description = await searcher.get_object_wiki_info(rated_title.title_name)
@@ -137,7 +190,7 @@ async def _check_if_data_correct(data: dict[str]):
     user_exist = await User.check_if_user_already_exist(data['username'], data['email'])
     if user_exist:
         raise LoginError(LoginErrorMessage.USER_ALREADY_EXIST.value)
-    if password != data['repeated_password']:
+    elif password != data['repeated_password']:
         raise PasswordError(PasswordErrorMessage.UNMATCHED_PASSWORD.value)
     elif (
             not PASSWORD_SYMBOLS_REQUIREMENTS_PATTERN.search(password)
@@ -146,6 +199,8 @@ async def _check_if_data_correct(data: dict[str]):
         raise PasswordError(PasswordErrorMessage.INELIGIBLE_PASSWORD.value)
     elif not LOGIN_COMPOUNDS_REQUIREMENTS_PATTERN.match(data['username']):
         raise LoginError(LoginErrorMessage.INELIGIBLE_LOGIN.value)
+    elif not re.match(EMAIL_COMPOUNDS_REQUIREMENTS_PATTERN, data['email']):
+        raise EmailError(EmailErrorMessage.INCORRECT_EMAIL.value)
 
 
 def login_required(handler: typing.Callable[[web.Request], typing.Awaitable[web.Response]]):
@@ -154,9 +209,9 @@ def login_required(handler: typing.Callable[[web.Request], typing.Awaitable[web.
     @wraps(handler)
     async def wrapper(request: web.Request) -> web.Response:
         session = await get_session(request)
-        if session.new:
+        if session.new or 'status' not in session.keys():
             session.invalidate()
-            raise web.HTTPUnauthorized(text='Requires authorization')
+            raise web.HTTPUnauthorized(text='Requires authorization or email not confirmed')
         return await handler(request)
 
     return wrapper
@@ -181,6 +236,25 @@ def json_required(handler: typing.Callable[[web.Request], typing.Awaitable[web.R
 def create_json_response(data: dict[typing.Union[str, int]]) -> web.Response:
     """Json response using ujson.dumps"""
     return web.json_response(data, dumps=ujson.dumps)
+
+
+def _process_random_category_choosing(categories: list['CategoryRating']) -> int:
+    """Get random category id based on avg category rating"""
+    amount_of_categories = len(categories)
+    summary_rating = 0
+    result = []
+    for category in categories:
+        summary_rating += category.rating_number
+    try:
+        avg_rating = amount_of_categories / summary_rating
+    except ZeroDivisionError:
+        avg_rating = 0
+    for category in categories:
+        if category.rating_number >= avg_rating:
+            result.append(category.category_id)
+            result.append(category.category_id)
+        result.append(category.category_id)
+    return result[random.randint(0, len(result))]
 
 
 def _hash_password(password: str) -> str:

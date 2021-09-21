@@ -16,10 +16,11 @@ from api.utilities import (
     create_json_response,
     login_required,
     json_required,
+    process_email_confirmation
 )
 from database.models import connect_to_db, db
 from database.utilities import apply_migrations
-from shared.exceptions import PasswordError, LoginError
+from shared.exceptions import PasswordError, LoginError, EmailError
 from shared.project_settings import settings
 
 
@@ -29,10 +30,10 @@ async def register(request: web.Request) -> web.Response:
     check_for_required_info_for_registration(data)
     logger.debug(f'User: {data["username"]} is trying to register')
     try:
-        response = await register_user(data)
+        response = await register_user(data, request)
         logger.debug(f'Successful registration by user: {data["username"]}')
         return create_json_response(response)
-    except (LoginError, PasswordError) as error:
+    except (LoginError, PasswordError, EmailError) as error:
         response = {'error': str(error)}
         logger.debug(f'Registration error: {error}, user: {data["username"]}')
         return create_json_response(response)
@@ -82,6 +83,11 @@ async def rate_fact(request: web.Request) -> web.Response:
     return create_json_response(response)
 
 
+async def email_confirmation(request: web.Request):
+    """Process email confirmation"""
+    return create_json_response(await process_email_confirmation(request))
+
+
 async def web_app() -> 'web.Application':
     """Start app entrypoint"""
     logger.info('Starting app web app')
@@ -107,6 +113,7 @@ def add_handlers(app: web.Application):
     """Add handlers"""
     app.add_routes(
         [
+            web.get('/email_confirmation/{token}', email_confirmation),
             web.post('/registration', register),
             web.post('/rate_fact', rate_fact),
             web.post('/login', login),

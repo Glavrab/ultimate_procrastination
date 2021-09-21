@@ -1,6 +1,8 @@
-import ujson
 import typing
+
 import aiohttp
+import ujson
+
 from shared.constants import Wiki, SearchedObjectTypes
 
 
@@ -27,11 +29,13 @@ def get_object_info_for_one_page(data: dict[str]) -> str:
     return title
 
 
-def get_titles_and_categories(data: dict[str]) -> tuple[list[str], list[str]]:
+def get_titles_and_categories(data: dict[str]) -> typing.Union[tuple[list[str], list[str]], tuple[None, None]]:
     """Parse json file for categories or pages titles to insert into db """
     titles = []
     categories = []
-    search_results = data['query']['categorymembers']
+    if 'categorymembers' not in data['query'].keys():
+        return None, None
+    search_results = data['query']['category_members']
     for result in search_results:
         if result['ns'] == 0:  # Means that result is page other is category
             titles.append(result['title'])

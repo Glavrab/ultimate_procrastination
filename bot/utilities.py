@@ -1,13 +1,15 @@
-from shared.constants import URL, CurrentTask
-from loguru import logger
+import itertools
+import json
+from typing import Optional, Any
+
+import ujson
 from aiogram import Bot, types
 from aiogram.dispatcher import FSMContext
-from typing import Optional, Any
-from bot.constants import AuthorizationForm
-import ujson
 from aiohttp import ClientSession
-import json
-import itertools
+from loguru import logger
+
+from bot.constants import AuthorizationForm
+from shared.constants import URL, CurrentTask
 
 
 async def process_showing_random_fact(bot: Bot,
