@@ -6,7 +6,6 @@ import ujson
 from aiogram import Bot, types
 from aiogram.dispatcher import FSMContext
 from aiohttp import ClientSession
-from loguru import logger
 from shared.utilities import get_all_enum_values
 from bot.constants import AuthorizationForm, MainForm
 from shared.constants import URL, CurrentTask, SearchType, RateCommand, ContentType
@@ -75,10 +74,9 @@ async def process_authorization_error_scenario(
         error = response['error']
     else:
         error = response
-    logger.debug(f'Unsuccessful authorization by user: {message.from_user.id} error:{error}')
     await message.answer(
-        error + ' ' + f' Get back to the login page or start {process_type}'
-                      f'process again by typing your username again',
+        error + '. ' + f' Get back to the login page or start {process_type} '
+                       f'process again by typing your username again',
         reply_markup=create_inline_keyboard([CurrentTask.LOGIN_PAGE.value]),
     )
     await AuthorizationForm.username.set()
@@ -90,7 +88,7 @@ async def show_login_menu(bot: Bot, chat_id: int):
         chat_id,
         'Welcome to yours procrastination supporter, have you already registered?',
         reply_markup=create_inline_keyboard
-        (
+            (
             [
                 'Yes',
                 'No',
