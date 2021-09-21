@@ -13,6 +13,11 @@ class ProjectSettings(BaseModel):
     pg_password: str
     pg_port: int
     pg_db: str
+    debug_status: bool
+    redis_password: str
+    service_account_password: str
+    service_account_name: str
+    smtp_server: str
 
     project_dir = pathlib.Path(__file__).parent.parent.resolve()
 
@@ -28,6 +33,11 @@ class ProjectSettings(BaseModel):
             pg_password=config.get('pg_password'),
             pg_port=config.get('pg_port'),
             pg_db=config.get('pg_db'),
+            debug_status=config.get('debug_status'),
+            redis_password=config.get('redis_password'),
+            service_account_password=config.get('service_account_password'),
+            service_account_name=config.get('service_account_name'),
+            smtp_server=config.get('smtp_server'),
         )
 
     def create_db_uri(self) -> str:
