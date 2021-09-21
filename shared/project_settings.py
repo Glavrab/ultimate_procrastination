@@ -13,6 +13,8 @@ class ProjectSettings(BaseModel):
     pg_password: str
     pg_port: int
     pg_db: str
+    debug_status: bool
+    redis_password: str
 
     project_dir = pathlib.Path(__file__).parent.parent.resolve()
 
@@ -28,6 +30,8 @@ class ProjectSettings(BaseModel):
             pg_password=config.get('pg_password'),
             pg_port=config.get('pg_port'),
             pg_db=config.get('pg_db'),
+            debug_status=config.get('debug_status'),
+            redis_password=config.get('redis_password'),
         )
 
     def create_db_uri(self) -> str:

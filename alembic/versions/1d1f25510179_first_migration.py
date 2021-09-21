@@ -46,7 +46,7 @@ def upgrade():
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('username', sa.String(length=30), nullable=False),
-    sa.Column('password', sa.String(length=40), nullable=False),
+    sa.Column('password', sa.String(length=70), nullable=False),
     sa.Column('telegram_id', sa.Integer(), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('telegram_id'),
