@@ -5,6 +5,15 @@ import re
 PASSWORD_SYMBOLS_REQUIREMENTS_PATTERN = re.compile('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,16}$')
 PASSWORD_COMPOUNDS_REQUIREMENTS_PATTERN = re.compile('^[a-zA-Z0-9$@]')
 LOGIN_COMPOUNDS_REQUIREMENTS_PATTERN = re.compile('^[a-zA-Z0-9$@].{4,20}$')
+EMAIL_COMPOUNDS_REQUIREMENTS_PATTERN = re.compile(
+    '^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]'
+    '+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$'
+)
+
+
+class EmailMessage(enum.Enum):
+    """Message for user in email message to activate account"""
+    CONFIRMATION = 'Here is your link go to it to activate your account! '
 
 
 class ContentType(enum.Enum):
@@ -45,6 +54,7 @@ class URL(enum.Enum):
     RANDOM_FACT = 'http://procrastination_web:8000/random_fact'
     RANDOM_RATED_FACT = 'http://procrastination_web:8000/random_rated_fact/'
     RATE_FACT = 'http://procrastination_web:8000/rate_fact'
+    EMAIL_CONFIRMATION = 'http://0.0.0.0:8000/email_confirmation/'
 
 
 class InfoTypeId(enum.Enum):
@@ -67,6 +77,12 @@ class RateCommand(enum.Enum):
 class Codes(enum.Enum):
     """Response result codes"""
     SUCCESS = 500
+    AUTHORIZED = 200
+
+
+class EmailErrorMessage(enum.Enum):
+    """Email error messages"""
+    INCORRECT_EMAIL = 'Your email is incorrect'
 
 
 class PasswordErrorMessage(enum.Enum):
@@ -80,7 +96,7 @@ class PasswordErrorMessage(enum.Enum):
 class LoginErrorMessage(enum.Enum):
     """Login error messages"""
     INELIGIBLE_LOGIN = 'Login should consist of latin letters and numbers'
-    INCORRECT_DATA = 'Incorrect login or password'
+    INCORRECT_DATA = 'Incorrect login or password or email not confirmed yet'
     USER_ALREADY_EXIST = 'This login already exist'
 
 

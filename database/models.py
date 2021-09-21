@@ -24,6 +24,7 @@ class User(db.Model):
     password = sa.Column(sa.String(150), nullable=False)
     telegram_id = sa.Column(sa.Integer(), nullable=True, unique=True)
     email = sa.Column(sa.String(30), nullable=False, unique=True)
+    email_confirmed = sa.Column(sa.Boolean(), nullable=True, default=False)
 
     @classmethod
     async def get_users_top_categories_id(
@@ -189,5 +190,5 @@ class Title(db.Model):
     async def get_random_title_by_category(cls, title_type: int) -> 'Title':
         """Get one title by its category"""
         title_ids = await cls.get_all_titles_id_by_category(title_type)
-        title = await cls.get(title_ids[randint(0, len(title_ids))])
+        title = await cls.get(title_ids[randint(0, len(title_ids)-1)])
         return title
