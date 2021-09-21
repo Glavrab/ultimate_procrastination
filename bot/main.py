@@ -13,9 +13,9 @@ from bot.utilities import (
     show_login_menu,
     process_showing_random_fact,
     rate_fact,
+    process_showing_main_menu,
 )
-from shared.constants import CurrentTask, RateCommand
-from shared.utilities import get_all_enum_values
+from shared.constants import CurrentTask, RateCommand, Wiki
 
 
 @dp.message_handler(commands='start')
@@ -54,10 +54,26 @@ async def get_back_to_login_page(message: types.CallbackQuery, state: FSMContext
 @dp.callback_query_handler(state=MainForm.work_process)
 async def process_getting_random_fact(message: types.CallbackQuery, state: FSMContext):
     """Get random rated fact"""
-    commands = get_all_enum_values(RateCommand)
-    if message.data in commands:
+    if message.data in (
+            CurrentTask.GET_NEW_FACT.value,
+            CurrentTask.GET_TOP_FACT.value,
+            RateCommand.NEXT.value,
+    ):
+        async with state.proxy() as data:
+            if message.data in (CurrentTask.GET_NEW_FACT.value, CurrentTask.GET_TOP_FACT.value):
+                data['current_task'] = message.data
+        await process_showing_random_fact(bot, state, message)
+    if message.data in (RateCommand.LIKE.value, RateCommand.DISLIKE.value):
         await rate_fact(state, message.data)
-    await process_showing_random_fact(bot, state, message, commands)
+        await process_showing_main_menu(bot, message, 'Thank you for your mark! Do you want to get more?')
+    if message.data == RateCommand.MORE_INFO.value:
+        async with state.proxy() as data:
+            last_rated_topic_name = data['last_rated_topic_name']
+        await process_showing_main_menu(
+            bot,
+            message,
+            f'{Wiki.WIKI_URL.value+last_rated_topic_name} check this one! Do you want to get more?'
+        )
 
 
 async def on_startup(dispatcher: Dispatcher):

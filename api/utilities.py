@@ -26,6 +26,7 @@ from shared.constants import (
     PASSWORD_COMPOUNDS_REQUIREMENTS_PATTERN,
     LOGIN_COMPOUNDS_REQUIREMENTS_PATTERN,
     PASSWORD_SYMBOLS_REQUIREMENTS_PATTERN,
+    SearchType,
     EMAIL_COMPOUNDS_REQUIREMENTS_PATTERN,
     URL,
     EmailMessage,
@@ -135,9 +136,15 @@ async def get_random_fact_info() -> str:
     return object_description
 
 
-async def get_random_rated_fact_info(session: 'Session') -> tuple[str, str]:
+async def get_random_rated_fact_info(session: 'Session', search_type: str) -> tuple[str, str]:
     """Get random rated fact"""
-    rated_categories = await User.get_users_top_categories_id(5, session['user_id'])
+    if search_type not in get_all_enum_values(SearchType):
+        raise web.HTTPBadRequest(text='Incorrect request path')
+    rated_categories = []
+    if search_type == SearchType.TOP_FACTS.value:
+        rated_categories = [category for category in await User.get_users_top_categories_id(5, session['user_id'])]
+    if search_type == SearchType.NEW_FACTS.value:
+        rated_categories = [category for category in await User.get_new_users_categories_id(5, session['user_id'])]
     random_category_id = _process_random_category_choosing(categories=rated_categories)
     rated_title = await Title.get_random_title_by_category(random_category_id)
     session['last_rated_topic_id'] = rated_title.id

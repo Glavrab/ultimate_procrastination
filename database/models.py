@@ -1,25 +1,19 @@
 """DB entities"""
 import typing
-from dataclasses import dataclass
+
 from random import randint
 
 import sqlalchemy as sa
 from gino import Gino
 from sqlalchemy import and_
 
-from database.utilities import get_unrated_categories
+from database.utilities import CategoryRating, parse_results, get_required_categories
 
 db = Gino()  # DB initialization
 
 
 async def connect_to_db(uri: str):
     await db.set_bind(uri)
-
-
-@dataclass
-class CategoryRating:
-    category_id: int
-    rating_number: int
 
 
 class User(db.Model):
@@ -33,9 +27,13 @@ class User(db.Model):
     email_confirmed = sa.Column(sa.Boolean(), nullable=True, default=False)
 
     @classmethod
-    async def get_users_top_categories_id(cls, amount_of_categories: int, user_id: int) -> list['CategoryRating']:
+    async def get_users_top_categories_id(
+            cls,
+            amount_of_categories: int,
+            user_id: int,
+    ) -> list['CategoryRating']:
         """Get users top categories"""
-        result: list[CategoryRating] = []
+        all_categories_ids = await Category.get_all_available_categories_ids()
         rated_categories = await db.select(
             [Rating.category_type_id, Rating.rating_number]
         ).select_from(
@@ -45,18 +43,46 @@ class User(db.Model):
                 Rating.rating_number >= 0,
                 cls.id == user_id,
             )
+        ).order_by(
+            Rating.rating_number
         ).gino.all()
-        if len(rated_categories) < amount_of_categories:
-            unrated_categories = get_unrated_categories(
-                rated_categories,
-                await Category.get_all_available_categories_ids(),
-                amount_of_categories - len(rated_categories),
+        return parse_results(amount_of_categories, rated_categories, all_categories_ids)
+
+    @classmethod
+    async def get_new_users_categories_id(
+            cls,
+            amount_of_categories: int,
+            user_id: int,
+    ) -> list['CategoryRating']:
+        """Get users new categories"""
+        all_categories_ids = await Category.get_all_available_categories_ids()
+        unparsed_unrated_categories_ids = await db.select(
+            [
+                Rating.category_type_id,
+                Rating.rating_number,
+            ]
+        ).select_from(
+            cls.join(Rating)
+        ).gino.query.where(
+            cls.id == user_id
+        ).gino.all()
+        if len(all_categories_ids) - len(unparsed_unrated_categories_ids) >= amount_of_categories:
+            result = []
+            get_required_categories(unparsed_unrated_categories_ids, all_categories_ids, amount_of_categories)
+            for unparsed_category in unparsed_unrated_categories_ids:
+                result.append(CategoryRating(unparsed_category[0], 0))
+            return result
+        zero_rated_categories = await db.select(
+            [Rating.category_type_id, Rating.rating_number]
+        ).select_from(
+            cls.join(Rating)
+        ).gino.query.where(
+            and_(
+                Rating.rating_number == 0,
+                cls.id == user_id,
             )
-            for unrated_category in unrated_categories:
-                rated_categories.append((unrated_category, 0))
-        for (category_id, category_rating) in rated_categories:
-            result.append(CategoryRating(category_id, category_rating))
-        return result
+        ).gino.all()
+        return parse_results(amount_of_categories, zero_rated_categories, all_categories_ids)
 
     @classmethod
     async def get_user_by_username(cls, username: str) -> typing.Optional['User']:

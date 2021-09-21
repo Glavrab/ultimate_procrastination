@@ -16,6 +16,18 @@ class EmailMessage(enum.Enum):
     CONFIRMATION = 'Here is your link go to it to activate your account! '
 
 
+class ContentType(enum.Enum):
+    """Response content-type"""
+    JSON = 'application/json'
+    TEXT_PLAIN = 'text/plain'
+
+
+class SearchType(enum.Enum):
+    """Required path to access correct fact choosing"""
+    NEW_FACTS = 'new'
+    TOP_FACTS = 'top'
+
+
 class RequiredData(enum.Enum):
     """Required data to process request"""
     USERNAME = 'username'
@@ -31,7 +43,8 @@ class CurrentTask(enum.Enum):
     LOGIN_PAGE = 'Login page'
     REGISTRATION = 'Registration'
     LOGIN = 'Login'
-    GETTING_INFO = 'Getting info'
+    GET_TOP_FACT = 'Get top facts'
+    GET_NEW_FACT = 'Get new facts'
 
 
 class URL(enum.Enum):
@@ -39,7 +52,7 @@ class URL(enum.Enum):
     REGISTER = 'http://procrastination_web:8000/registration'
     LOGIN = 'http://procrastination_web:8000/login'
     RANDOM_FACT = 'http://procrastination_web:8000/random_fact'
-    RANDOM_RATED_FACT = 'http://procrastination_web:8000/random_rated_fact'
+    RANDOM_RATED_FACT = 'http://procrastination_web:8000/random_rated_fact/'
     RATE_FACT = 'http://procrastination_web:8000/rate_fact'
     EMAIL_CONFIRMATION = 'http://0.0.0.0:8000/email_confirmation/'
 
@@ -90,6 +103,7 @@ class LoginErrorMessage(enum.Enum):
 class Wiki(enum.Enum):
     """Wiki api url"""
     API_URL = 'https://en.wikipedia.org/w/api.php'
+    WIKI_URL = 'https://en.wikipedia.org/wiki/'
 
 
 class SearchedObjectCategories(enum.Enum):
