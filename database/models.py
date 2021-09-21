@@ -71,6 +71,21 @@ class User(db.Model):
         return user
 
     @classmethod
+    async def check_if_user_already_exist(cls, username: str, email: str) -> bool:
+        """Check if given username or email already exist in db"""
+        result = await db.select(
+            [cls.email, cls.username]
+        ).select_from(cls).gino.query.where(
+            and_(
+                cls.username == username,
+                cls.email == email
+            )
+        ).gino.one_or_none()
+        if result:
+            return True
+        return False
+
+    @classmethod
     async def get_all_telegram_users(cls) -> list['User']:
         """Get all telegram users from db"""
         users = await cls.query.where(cls.telegram_id > 0).gino.all()

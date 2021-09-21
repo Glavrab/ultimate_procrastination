@@ -25,7 +25,7 @@ from shared.project_settings import settings
 
 
 @json_required
-async def register(request: web.Request):
+async def register(request: web.Request) -> web.Response:
     data = await request.json(loads=ujson.loads)
     check_for_required_info_for_registration(data)
     logger.debug(f'User: {data["username"]} is trying to register')
@@ -40,7 +40,7 @@ async def register(request: web.Request):
 
 
 @json_required
-async def login(request: web.Request):
+async def login(request: web.Request) -> web.Response:
     data = await request.json(loads=ujson.loads)
     check_for_required_info_for_login(data)
     logger.debug(f'Authorization attempt by user:{data["username"]}')
@@ -55,7 +55,7 @@ async def login(request: web.Request):
 
 
 @login_required
-async def get_random_fact(request: web.Request):
+async def get_random_fact(request: web.Request) -> web.Response:
     session = await get_session(request)
     logger.debug(f'User:{session["username"]}, session id:{session.identity} asked for random info')
     object_description = await get_random_fact_info()
@@ -64,7 +64,7 @@ async def get_random_fact(request: web.Request):
 
 
 @login_required
-async def get_random_rated_fact(request: web.Request):
+async def get_random_rated_fact(request: web.Request) -> web.Response:
     session = await get_session(request)
     logger.debug(f'User:{session["username"]} session_id:{session.identity} asked for random rated fact')
     object_description, title_name = await get_random_rated_fact_info(session)
@@ -74,7 +74,7 @@ async def get_random_rated_fact(request: web.Request):
 
 @login_required
 @json_required
-async def rate_fact(request: web.Request):
+async def rate_fact(request: web.Request) -> web.Response:
     data = await request.json(loads=ujson.loads)
     check_for_required_info_to_rate_title(data)
     session = await get_session(request)
