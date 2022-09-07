@@ -17,6 +17,7 @@ async def process_showing_random_fact(bot: Bot,
                                       ):
     """Process showing random fact for user"""
     async with state.proxy() as data:
+
         if message.data == RateCommand.NEXT:
             search_type = data['current_task']
         else:
@@ -88,7 +89,7 @@ async def show_login_menu(bot: Bot, chat_id: int):
         chat_id,
         'Welcome to yours procrastination supporter, have you already registered?',
         reply_markup=create_inline_keyboard
-            (
+        (
             [
                 'Yes',
                 'No',
