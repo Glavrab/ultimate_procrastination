@@ -7,9 +7,9 @@
   - [How it works](#how-it-works)
   - [Telegram Bot](#telegram-bot)
   - [Web service](#web-service)
-    -- [Deploy](#deploy)
-    1 - [Build](#build)
-    2 - [Project's settings](#projects-settings)
+- [Deploy](#deploy)
+  - [Build](#build)
+  - [Project's settings](#projects-settings)
 
 ## About
 
