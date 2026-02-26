@@ -1,22 +1,24 @@
 # Ultimate Procrastination
 
 ### Table of content
-* [About](#about)
-* [About technical details](#about-technical-details)
-    * [How it works](#how-it-works)
-    * [Telegram Bot](#telegram-bot)
-    * [Web service](#web-service)
-* [Deploy](#deploy)
-    * [Build](#build)
-    * [Project's settings](#projects-settings)
-    
+
+- [About](#about)
+- [About technical details](#about-technical-details)
+  - [How it works](#how-it-works)
+  - [Telegram Bot](#telegram-bot)
+  - [Web service](#web-service)
+- [Deploy](#deploy)
+  - [Build](#build)
+  - [Project's settings](#projects-settings)
+
 ## About
+
+## Hello
 
 It is a system to provide support for your procrastination and as a bonus to increase your intelligence level!
 When you don't know what to do, or you know but don't want to bother yourself with necessary task this service will help you out!
 Giving you literally infinite amount of unimportant but interesting facts.
 After small registration you can configure your own feed and receive the information about categories you prefer most.
-
 
 ## About Technical details
 
@@ -28,6 +30,7 @@ aiogram(as Telegram Bot), Redis(for storing session data), Docker.
 ### How it works
 
 ![Current scheme](https://github.com/Glavrab/ultimate_procrastination/blob/web_app%2Bbot/docs/working_scheme.png?raw=true)
+
 ### Telegram Bot
 
 Telegram bot is written using aiogram. Currently, receiving update object from telegram using long pooling.
@@ -35,9 +38,8 @@ It communicates with web service by HTTP.
 
 ### Web service
 
-Web service is written on aiohttp. 
+Web service is written on aiohttp.
 Currently, it handles requests from bot users. In future some front-end service will be added.
-
 
 ## Deploy
 
@@ -50,7 +52,7 @@ You need to have docker and docker-compose installed.
 3. Create `.env` and `config.json` file. About .env and config.json files
 4. Run `docker-compose build`;
 5. Start with running `docker-compose up`.
-6. To fill db with titles run searcher.py 
+6. To fill db with titles run searcher.py
 
 ```shell script
 $ mkdir ultimate_procrastination
@@ -64,6 +66,7 @@ $ python3 wiki_searcher/searcher.py
 ```
 
 ### Project's settings
+
 `.env` file composition. Values appear in docker-compose.yaml
 
 1. POSTGRES_PASSWORD
@@ -97,7 +100,7 @@ In the future, we will use some service to be more secure.
   "apply_migration": "head",
   "pg_host": "db",
   "pg_username": "procrastination_admin",
-  "pg_password":"POSTGRES_PASSWORD123",
+  "pg_password": "POSTGRES_PASSWORD123",
   "pg_port": 5432,
   "pg_db": "ultimate_procrastination",
   "debug_status": "True",
@@ -107,6 +110,7 @@ In the future, we will use some service to be more secure.
   "service_account_password": "secret_password1234"
 }
 ```
+
 ## Developers
 
 Project is initially developed and maintained by [Alexey Baranov](https://github.com/Glavrab).
