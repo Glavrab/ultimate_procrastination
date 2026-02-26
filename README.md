@@ -8,10 +8,12 @@
   - [Telegram Bot](#telegram-bot)
   - [Web service](#web-service)
 - [Deploy](#deploy)
-  4* [Build](#build)
-  6 * [Project's settings](#projects-settings)
+  - [Build](#build)
+  - [Project's settings](#projects-settings)
 
 ## About
+
+## Helloo
 
 It is a system to provide support for your procrastination and as a bonus to increase your intelligence level!
 When you don't know what to do, or you know but don't want to bother yourself with necessary task this service will help you out!
